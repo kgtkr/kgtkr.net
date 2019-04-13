@@ -8,14 +8,16 @@ tags: ["typescript","typelevelprogramming"]
 
 ## 準備
 
-```ts:logical.ts
+logical.ts
+```ts
 export type And<A extends boolean, B extends boolean> = A extends true ? (B extends true ? true : false) : false;
 export type Or<A extends boolean, B extends boolean> = A extends true ? true : (B extends true ? true : false);
 export type Xor<A extends boolean, B extends boolean> = A extends true ? (B extends true ? false : true) : (B extends true ? true : false);
 export type Not<X extends boolean> = X extends true ? false : true;
 ```
 
-```ts:test.ts
+test.ts
+```ts
 import { And, Not, Or } from "./logical";
 
 type IsExtends<A, B> = A extends B ? true : false;

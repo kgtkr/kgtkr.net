@@ -7,34 +7,39 @@ tags: ["typescript"]
 # 普通に
 普通に読み込むとエラーになります。
 
-```ts:app.ts
+app.ts
+```ts
 import * as hoge from 'hoge';
 ```
 
 # 推奨
 ソースフォルダに`適当な名前.d.ts`ファイルを作って以下の内容を書きます。
 
-```ts:types.d.ts
+types.d.ts
+```ts
 declare module 'hoge';
 ``` 
 
 あとは普通に読みこめばOKです。
 
-```ts:app.ts
+app.ts
+```ts
 import * as hoge from 'hoge';
 ```
 
 ## ワイルドカード
 ワイルドカードも使えます。
 
-```ts:types.d.ts
+types.d.ts
+```ts
 declare module '*';
 ``` 
 
 # 非推奨
 これでも一応出来ますが、あまりおすすめはしません。
 
-```ts:app.ts
+app.ts
+```ts
 declare function require(path: string): any;
 const hoge = require('hoge');
 ```

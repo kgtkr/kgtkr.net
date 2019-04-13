@@ -76,7 +76,8 @@ IDは文字列リテラル型かunique symbolです。衝突を考えるとuniqu
 ## 実装
 まず次のような空のinterfaceを定義します。
 
-```ts:hkt.ts
+hkt.ts
+```ts
 export interface HKT<T> {
 
 }
@@ -86,7 +87,8 @@ export interface HKT<T> {
 また追加は複数に分けて行えます。
 同階層の別ファイルから行う場合は次のようになります。
 
-```ts:type.ts
+type.ts
+```ts
 export class Type1<T> {
   constructor(public x: T) { }
 }
@@ -108,7 +110,8 @@ declare module "./hkt" {
 
 次に型コンストラクタを受け取る側の定義です。
 
-```ts:functor.ts
+functor.ts
+```ts
 import { HKT } from "./hkt";
 
 export interface Functor<T, F extends keyof HKT<any>> {
@@ -135,7 +138,8 @@ export interface HKT2<T,P> {
 
 では先ほどの`type.ts`を編集してFunctorを実装してみましょう。
 
-```ts:type.ts
+type.ts
+```ts
 import { Functor } from "./functor";
 
 export class Type1<T> implements Functor<T, "Type1">{
