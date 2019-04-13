@@ -20,7 +20,7 @@ const Tags = ({ pathContext, location, data }) => {
           <ul>
             {posts.map(post => {
               return (
-                <li>
+                <li key={post.fields.slug}>
                   <Link to={post.fields.slug}>
                     {post.frontmatter.title}
                   </Link>

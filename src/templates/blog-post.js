@@ -30,7 +30,7 @@ class BlogPostTemplate extends React.Component {
         >
           {post.frontmatter.date}
           {" "}
-          {post.frontmatter.tags.map(tag => <Link to={`/tags/${tag}`}>{tag}</Link>)}
+          {post.frontmatter.tags.map(tag => <Link key={tag} to={`/tags/${tag}`}>{tag}</Link>)}
         </p>
         <div dangerouslySetInnerHTML={{ __html: post.html }} />
         <hr

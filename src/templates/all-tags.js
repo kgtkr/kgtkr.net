@@ -17,7 +17,7 @@ const AllTags = ({ pathContext, location, data }) => {
           <ul>
             {tags.map(tag => {
               return (
-                <li>
+                <li key={tag}>
                   <Link to={`/tags/${tag}`}>
                     {tag}
                   </Link>
