@@ -2,7 +2,7 @@
 title: AGC024-A Fairnessの考察
 date: "2018-06-18T12:51:11.000Z"
 description: ""
-tags: []
+tags: ["競プロ"]
 ---
 
 [AGC024-A Fairness](https://beta.atcoder.jp/contests/agc024/tasks/agc024_a)の考察を頑張って書いたので残したいなと。  

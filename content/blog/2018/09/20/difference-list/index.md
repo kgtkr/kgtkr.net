@@ -2,7 +2,7 @@
 title: 差分リスト式変形
 date: "2018-09-19T15:23:47.000Z"
 description: ""
-tags: []
+tags: ["haskell"]
 ---
 
 メモ
