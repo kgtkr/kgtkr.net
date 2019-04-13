@@ -38,8 +38,20 @@ function Bio() {
               }}
             />
             <p>
-              Twitter:<a href={`https://twitter.com/${social.twitter}`}>
-                @{social.twitter}
+              Web Developer.
+              <br />
+              <a style={{
+                boxShadow: `none`,
+                textDecoration: `none`,
+              }} href={`https://twitter.com/${social.twitter}`}>
+                Twitter
+              </a>
+              ,
+              <a style={{
+                boxShadow: `none`,
+                textDecoration: `none`,
+              }} href={`https://kgtkr.net`}>
+                HomePage
               </a>
             </p>
           </div>
