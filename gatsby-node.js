@@ -1,6 +1,47 @@
 const path = require(`path`)
 const { createFilePath } = require(`gatsby-source-filesystem`)
 
+const createTagPages = (createPage, posts) => {
+  const tagPageTemplate = path.resolve(`src/templates/tags.js`);
+  const allTagsTemplate = path.resolve(`src/templates/all-tags.js`);
+
+  const postsByTags = {};
+
+  posts.forEach(({ node }) => {
+    if (node.frontmatter.tags) {
+      node.frontmatter.tags.forEach(tag => {
+        if (!postsByTags[tag]) {
+          postsByTags[tag] = [];
+        }
+        postsByTags[tag].push(node);
+      });
+    }
+  });
+
+  const tags = Object.keys(postsByTags);
+
+  createPage({
+    path: `/tags`,
+    component: allTagsTemplate,
+    context: {
+      tags: tags.sort(),
+    },
+  });
+
+  tags.forEach(tagName => {
+    const posts = postsByTags[tagName];
+
+    createPage({
+      path: `/tags/${tagName}`,
+      component: tagPageTemplate,
+      context: {
+        posts,
+        tagName,
+      },
+    });
+  });
+};
+
 exports.createPages = ({ graphql, actions }) => {
   const { createPage } = actions
 
@@ -19,6 +60,7 @@ exports.createPages = ({ graphql, actions }) => {
               }
               frontmatter {
                 title
+                tags
               }
             }
           }
@@ -32,6 +74,8 @@ exports.createPages = ({ graphql, actions }) => {
 
     // Create blog posts pages.
     const posts = result.data.allMarkdownRemark.edges
+
+    createTagPages(createPage, posts);
 
     posts.forEach((post, index) => {
       const previous = index === posts.length - 1 ? null : posts[index + 1].node
