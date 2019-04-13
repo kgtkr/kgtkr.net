@@ -2,7 +2,7 @@
 title: AtCoderで水色になりました
 date: "2018-06-16T15:32:26.000Z"
 description: ""
-tags: ["競プロ"]
+tags: ["procon"]
 ---
 
 ABC100で水色になりました。せっかくなので色々振り返ってみようと思います
