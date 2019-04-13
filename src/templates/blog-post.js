@@ -32,7 +32,7 @@ class BlogPostTemplate extends React.Component {
         >
           {post.frontmatter.date}
           {" "}
-          {post.frontmatter.tags.map(tag => <Link key={tag} to={`/tags/${tag}`}>{tag}</Link>)}
+          {post.frontmatter.tags.map(tag => <span key={tag}><Link to={`/tags/${tag}`}>{tag}</Link>{" "}</span>)}
         </p>
         <div dangerouslySetInnerHTML={{ __html: post.html }} />
         <hr
@@ -75,22 +75,22 @@ export default BlogPostTemplate
 
 export const pageQuery = graphql`
   query BlogPostBySlug($slug: String!) {
-    site {
-      siteMetadata {
-        title
+            site {
+          siteMetadata {
+            title
         author
-      }
-    }
-    markdownRemark(fields: { slug: { eq: $slug } }) {
-      id
+          }
+        }
+    markdownRemark(fields: {slug: {eq: $slug } }) {
+            id
       excerpt(pruneLength: 160)
-      html
+          html
       frontmatter {
-        title
+            title
         date(formatString: "MMMM DD, YYYY")
-        description
-        tags
+          description
+          tags
+        }
       }
     }
-  }
-`
+  `
