@@ -1,7 +1,6 @@
 ---
 title: React HooksのuseEffect内でsetInterval等を呼び出すとstate等の値が変化しない問題の解決策
 date: "2019-03-20T14:09:58.000Z"
-description: ""
 tags: ["javascript","react"]
 name: react-hooks-effect
 ---

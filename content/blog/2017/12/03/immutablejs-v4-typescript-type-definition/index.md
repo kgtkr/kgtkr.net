@@ -1,7 +1,6 @@
 ---
 title: immutable.js v4でTypeScriptの型定義が改善された
 date: "2017-12-02T15:10:30.000Z"
-description: ""
 tags: ["typescript"]
 name: immutablejs-v4-typescript-type-definition
 ---

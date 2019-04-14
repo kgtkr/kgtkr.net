@@ -1,7 +1,6 @@
 ---
 title: WebAssemblyにコンパイルする言語を実装する
 date: "2018-12-02T17:58:42.000Z"
-description: ""
 tags: ["webassembly","languageprocessor"]
 name: wasm-target-lang
 ---

@@ -1,7 +1,6 @@
 ---
 title: JOI2018/2019予選 E - イルミネーション (Illumination)
 date: "2018-12-09T09:42:50.000Z"
-description: ""
 tags: ["procon"]
 name: joi2018-2019-e
 ---

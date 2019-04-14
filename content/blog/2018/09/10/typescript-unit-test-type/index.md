@@ -1,7 +1,6 @@
 ---
 title: TypeScriptで型のユニットテストをしたい
 date: "2018-09-10T08:42:11.000Z"
-description: ""
 tags: ["typescript","typelevelprogramming"]
 name: typescript-unit-test-type
 ---

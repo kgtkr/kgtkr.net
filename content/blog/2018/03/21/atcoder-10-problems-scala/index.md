@@ -1,7 +1,6 @@
 ---
 title: AtCoder に登録したら解くべき精選過去問 10 問を Scala で解いてみた
 date: "2018-03-21T14:01:38.000Z"
-description: ""
 tags: ["procon","scala"]
 name: atcoder-10-problems-scala
 ---

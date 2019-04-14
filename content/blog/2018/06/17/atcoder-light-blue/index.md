@@ -1,7 +1,6 @@
 ---
 title: AtCoderで水色になりました
 date: "2018-06-16T15:32:26.000Z"
-description: ""
 tags: ["procon"]
 name: atcoder-light-blue
 ---

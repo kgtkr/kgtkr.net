@@ -1,7 +1,6 @@
 ---
 title: GatsbyJSでブログ始めました
 date: "2019-04-13T07:59:22.896Z"
-description: ""
 tags: ["gatsby"]
 name: hello-world
 ---

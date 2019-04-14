@@ -1,7 +1,6 @@
 ---
 title: 競プロ用、Rust標準入力パースマクロ
 date: "2018-08-30T10:39:29.000Z"
-description: ""
 tags: ["procon","rust"]
 name: rust-procon-parse-macro
 ---

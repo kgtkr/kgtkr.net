@@ -1,7 +1,6 @@
 ---
 title: TypeScriptで型のオーバーライドをしたい
 date: "2018-09-03T09:46:03.000Z"
-description: ""
 tags: ["typescript"]
 name: typescript-type-overload
 ---

@@ -1,7 +1,6 @@
 ---
 title: Angularで余計なタグを出力せずに再起してMarkdownのASTを表示したい
 date: "2017-08-30T15:17:19.000Z"
-description: ""
 tags: ["angular"]
 name: angular-ast
 ---

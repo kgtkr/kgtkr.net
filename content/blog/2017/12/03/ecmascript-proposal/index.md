@@ -1,7 +1,6 @@
 ---
 title: EcmaScriptの個人的に気になる新機能提案
 date: "2017-12-02T15:10:49.000Z"
-description: ""
 tags: ["javascript","esnext"]
 name: ecmascript-proposal
 ---

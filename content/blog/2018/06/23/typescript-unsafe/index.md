@@ -1,7 +1,6 @@
 ---
 title: TypeScriptのunsafeな操作まとめ
 date: "2018-06-23T08:16:36.000Z"
-description: ""
 tags: ["typescript"]
 name: typescript-unsafe
 ---

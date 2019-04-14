@@ -1,7 +1,6 @@
 ---
 title: n^0+n^1+n^2が6a+5の倍数でない事の証明
 date: "2018-10-13T09:35:42.000Z"
-description: ""
 tags: ["math"]
 name: proof
 ---

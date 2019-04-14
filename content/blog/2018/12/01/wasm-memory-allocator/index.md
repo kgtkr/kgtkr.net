@@ -1,7 +1,6 @@
 ---
 title: WebAssemblyでメモリアロケータを実装
 date: "2018-12-01T13:34:55.000Z"
-description: ""
 tags: ["webassembly","languageprocessor"]
 name: wasm-memory-allocator
 ---

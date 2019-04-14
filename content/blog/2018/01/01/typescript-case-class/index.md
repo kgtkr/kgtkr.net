@@ -1,7 +1,6 @@
 ---
 title: TypeScriptでScalaのcase classのcopyのような物を実装する(継承対応)
 date: "2018-01-01T12:28:05.000Z"
-description: ""
 tags: ["typescript"]
 name: typescript-case-class
 ---
