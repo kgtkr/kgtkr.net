@@ -2,7 +2,7 @@ const path = require(`path`)
 const { createFilePath } = require(`gatsby-source-filesystem`)
 
 const moment = require("moment-timezone")
-const postToPath = require("./src/utils/post-to-path").default;
+const postToPath = require("./src/utils/post-to-path");
 
 
 const createTagPages = (createPage, posts) => {
