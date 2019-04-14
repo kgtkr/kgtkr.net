@@ -1,6 +1,12 @@
 const path = require(`path`)
 const { createFilePath } = require(`gatsby-source-filesystem`)
-const postToPath = require(`./src/utils/post-to-path`).default;
+
+const moment = require("moment-timezone")
+const postToPath = (post) => {
+  const date = moment(post.frontmatter.date).tz("UTC");
+  const name = post.frontmatter.name;
+  return `/blog/${date.format("YYYY/MM/DD")}/${name}`;
+};
 
 
 const createTagPages = (createPage, posts) => {

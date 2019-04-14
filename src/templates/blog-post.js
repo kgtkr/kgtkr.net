@@ -8,6 +8,7 @@ import { rhythm, scale } from "../utils/typography"
 import "katex/dist/katex.min.css"
 import "prismjs/themes/prism-solarizedlight.css"
 import postToPath from "../utils/post-to-path";
+import * as moment from "moment-timezone";
 
 class BlogPostTemplate extends React.Component {
   render() {
@@ -30,7 +31,7 @@ class BlogPostTemplate extends React.Component {
             marginTop: rhythm(-1),
           }}
         >
-          {post.frontmatter.date}
+          {moment(post.frontmatter.date).format("YYYY/MM/DD")}
           {" "}
           {post.frontmatter.tags.map(tag => <span key={tag}><Link to={`/tags/${tag}`}>{tag}</Link>{" "}</span>)}
           {new Date(post.frontmatter.date).valueOf() + 1000 * 60 * 60 * 24 * 365 <= new Date().valueOf() ? <><br />この記事は更新から1年以上経過しています</> : null}
@@ -88,7 +89,7 @@ export const pageQuery = graphql`
       html
       frontmatter {
         title
-        date(formatString: "YYYY/MM/DD")
+        date
         description
         tags
       }

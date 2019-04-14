@@ -6,7 +6,7 @@ import Layout from "../components/layout"
 import SEO from "../components/seo"
 import { rhythm } from "../utils/typography"
 import postToPath from "../utils/post-to-path";
-
+import * as moment from "moment-timezone";
 class BlogIndex extends React.Component {
   render() {
     const { data } = this.props
@@ -33,7 +33,7 @@ class BlogIndex extends React.Component {
                   {title}
                 </Link>
               </h3>
-              <small>{node.frontmatter.date}</small>
+              <small>{moment(node.frontmatter.date).format("YYYY/MM/DD")}</small>
               <p
                 dangerouslySetInnerHTML={{
                   __html: node.frontmatter.description || node.excerpt,
@@ -64,10 +64,11 @@ export const pageQuery = graphql`
             slug
           }
           frontmatter {
-            date(formatString: "YYYY/MM/DD")
+            date
             title
             description
             tags
+            name
           }
         }
       }
