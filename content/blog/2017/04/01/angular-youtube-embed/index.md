@@ -4,6 +4,8 @@ date: "2017-04-01T03:08:56.000Z"
 update: "2017-04-01T03:08:56.000Z"
 tags: ["angular"]
 name: angular-youtube-embed
+lang: ja
+otherLang: []
 ---
 # 解決法
 `innerHTML`に設定するHTMLはデフォルトでサニタイズされるようになっており、iframeタグが自動的に除去されるのが原因でした。

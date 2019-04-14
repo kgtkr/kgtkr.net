@@ -4,6 +4,8 @@ date: "2017-12-02T15:10:49.000Z"
 update: "2017-12-02T15:10:49.000Z"
 tags: ["javascript","esnext"]
 name: ecmascript-proposal
+lang: ja
+otherLang: []
 ---
 [tc39のリポジトリ](https://github.com/tc39)を中心に気になる提案をまとめます。
 

@@ -4,6 +4,8 @@ date: "2019-04-12T09:14:53.000Z"
 update: "2019-04-12T09:14:53.000Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-type-level-hyper-operation
+lang: ja
+otherLang: []
 ---
 この記事はTS3.4.3で動作確認をしています。
 

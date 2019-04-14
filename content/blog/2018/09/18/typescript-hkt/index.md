@@ -4,6 +4,8 @@ date: "2018-09-18T08:39:30.000Z"
 update: "2018-09-18T08:39:30.000Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-hkt
+lang: ja
+otherLang: []
 ---
 # はじめに
 TypeScript(TS)には高カインド型(HKT)がありません。一応[提案](https://github.com/Microsoft/TypeScript/issues/1213)がありますが…

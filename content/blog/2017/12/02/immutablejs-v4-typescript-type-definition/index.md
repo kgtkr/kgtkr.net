@@ -4,6 +4,8 @@ date: "2017-12-02T15:10:30.000Z"
 update: "2017-12-02T15:10:30.000Z"
 tags: ["typescript"]
 name: immutablejs-v4-typescript-type-definition
+lang: ja
+otherLang: []
 ---
 # strictNullChecks時の改善
 今まではmapやforEach関数に渡すコールバックの第一引数が`T?`でしたが、v4では`T`になりました。

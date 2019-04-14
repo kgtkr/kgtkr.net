@@ -4,6 +4,8 @@ date: "2017-08-30T15:17:19.000Z"
 update: "2017-08-30T15:17:19.000Z"
 tags: ["angular"]
 name: angular-ast
+lang: ja
+otherLang: []
 ---
 # 余計なタグとは
 下記のようなテンプレートがあったとします。

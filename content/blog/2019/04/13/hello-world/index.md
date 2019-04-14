@@ -4,6 +4,7 @@ date: "2019-04-13T07:59:22.896Z"
 update: "2019-04-13T07:59:22.896Z"
 tags: ["gatsby"]
 name: hello-world
+otherLang: ["en"]
 ---
 
 GatsbyJSを使ってブログを作ってみました。  

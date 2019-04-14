@@ -4,6 +4,8 @@ date: "2017-09-10T09:12:11.000Z"
 update: "2017-09-10T09:12:11.000Z"
 tags: ["typescript"]
 name: typescript-array-filter-type-guard
+lang: ja
+otherLang: []
 ---
 # 普通に書く
 ```ts

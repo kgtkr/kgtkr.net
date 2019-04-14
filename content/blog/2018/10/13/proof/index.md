@@ -4,6 +4,8 @@ date: "2018-10-13T09:35:42.000Z"
 update: "2018-10-13T09:35:42.000Z"
 tags: ["math"]
 name: proof
+lang: ja
+otherLang: []
 ---
 
 何かツイート流れてきたので

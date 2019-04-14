@@ -4,6 +4,8 @@ date: "2017-11-18T06:55:51.000Z"
 update: "2017-11-18T06:55:51.000Z"
 tags: ["javascript","esnext"]
 name: esnext-bind-operator
+lang: ja
+otherLang: []
 ---
 # bind operatorとは
 `func.call(obj)`を`obj::func()`と書けるシンタックスシュガーです。

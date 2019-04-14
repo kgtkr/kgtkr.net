@@ -4,6 +4,8 @@ date: "2018-06-23T08:16:36.000Z"
 update: "2018-06-23T08:16:36.000Z"
 tags: ["typescript"]
 name: typescript-unsafe
+lang: ja
+otherLang: []
 ---
 # 初めに
 TypeScript(以下TS)はJSに型を付けた静的型付け言語です。
