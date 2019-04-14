@@ -68,6 +68,8 @@ export const pageQuery = graphql`
             title
             tags
             name
+            lang
+            otherLang
           }
         }
       }

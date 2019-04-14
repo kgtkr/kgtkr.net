@@ -15,7 +15,7 @@ class BlogPostTemplate extends React.Component {
     const post = this.props.data.markdownRemark
     const siteTitle = this.props.data.site.siteMetadata.title
     const { previous, next } = this.props.pageContext
-
+    const otherLang = post.frontmatter.otherLang || [];
     return (
       <Layout location={this.props.location} title={siteTitle}>
         <SEO
@@ -35,6 +35,12 @@ class BlogPostTemplate extends React.Component {
           {" "}
           {post.frontmatter.tags.map(tag => <span key={tag}><Link to={`/tags/${tag}`}>{tag}</Link>{" "}</span>)}
           {new Date(post.frontmatter.date).valueOf() + 1000 * 60 * 60 * 24 * 365 <= new Date().valueOf() ? <><br />この記事は更新から1年以上経過しています</> : null}
+          {otherLang.length !== 0
+            ? <>
+              <br />
+              {otherLang.map(lang => <Link to={postToPath({ ...post, frontmatter: { ...post.frontmatter, lang } })}>{{ "ja": "日本語版", "en": "English version" }[lang]}</Link>)}
+            </>
+            : null}
         </p>
         <div dangerouslySetInnerHTML={{ __html: post.html }} />
         <hr
@@ -91,6 +97,9 @@ export const pageQuery = graphql`
         title
         date
         tags
+        lang
+        otherLang
+        name
       }
     }
   }

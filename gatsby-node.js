@@ -58,6 +58,8 @@ exports.createPages = ({ graphql, actions }) => {
                 tags
                 name
                 date
+                lang
+                otherLang
               }
             }
           }

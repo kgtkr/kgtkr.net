@@ -47,6 +47,8 @@ export const pageQuery = graphql`
         node {
           frontmatter {
             tags
+            lang
+            otherLang
           }
         }
       }
