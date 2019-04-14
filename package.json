@@ -1,11 +1,11 @@
 {
-  "name": "blog.kgtkr.net",
+  "name": "kgtkr.net",
   "private": true,
-  "description": "blog.kgtkr.net",
+  "description": "kgtkr.net",
   "version": "0.1.0",
   "author": "kgtkr",
   "bugs": {
-    "url": "https://github.com/kgtkr/blog.kgtkr.net/issues"
+    "url": "https://github.com/kgtkr/kgtkr.net/issues"
   },
   "dependencies": {
     "gatsby": "^2.3.16",
@@ -47,7 +47,7 @@
     "prettier": "^1.17.0",
     "react-social-icons": "^4.1.0"
   },
-  "homepage": "https://blog.kgtkr.net",
+  "homepage": "https://kgtkr.net",
   "keywords": [
     "gatsby"
   ],
@@ -55,7 +55,7 @@
   "main": "n/a",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kgtkr/blog.kgtkr.net.git"
+    "url": "git+https://github.com/kgtkr/kgtkr.net.git"
   },
   "scripts": {
     "build": "gatsby build",
