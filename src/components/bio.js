@@ -6,10 +6,11 @@
  */
 
 import React from "react"
-import { StaticQuery, graphql } from "gatsby"
+import { StaticQuery, graphql, Link } from "gatsby"
 import Image from "gatsby-image"
 
 import { rhythm } from "../utils/typography"
+import { SocialIcon } from 'react-social-icons';
 
 function Bio() {
   return (
@@ -37,23 +38,16 @@ function Bio() {
                 borderRadius: `50%`,
               }}
             />
-            <p>
+            <div>
               Web Developer.
               <br />
-              <a style={{
-                boxShadow: `none`,
-                textDecoration: `none`,
-              }} href={`https://twitter.com/${social.twitter}`}>
-                Twitter
-              </a>
-              ,
-              <a style={{
-                boxShadow: `none`,
-                textDecoration: `none`,
-              }} href={`https://kgtkr.net`}>
-                HomePage
-              </a>
-            </p>
+              <SocialIcon url={`https://twitter.com/${social.twitter}`} style={{ height: 25, width: 25 }} />
+              {" "}
+              <SocialIcon url={`https://github.com/${social.github}`} bgColor="#333" style={{ height: 25, width: 25 }} />
+              <div style={{ marginTop: 10 }}>
+                <Link to="/about">About</Link>
+              </div>
+            </div>
           </div>
         )
       }}
@@ -75,6 +69,7 @@ const bioQuery = graphql`
         author
         social {
           twitter
+          github
         }
       }
     }
