@@ -27,6 +27,17 @@ module.exports = {
       resolve: `gatsby-transformer-remark`,
       options: {
         plugins: [
+          `gatsby-remark-code-titles`,
+          'gatsby-remark-emojis',
+          'gatsby-remark-graphviz',
+          {
+            resolve: "gatsby-remark-embed-snippet",
+            options: {
+              classPrefix: "language-",
+              directory: "."
+            },
+          },
+          `gatsby-remark-embed-youtube`,
           {
             resolve: `gatsby-remark-images`,
             options: {
