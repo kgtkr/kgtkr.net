@@ -33,6 +33,8 @@ class BlogPostTemplate extends React.Component {
           {post.frontmatter.date}
           {" "}
           {post.frontmatter.tags.map(tag => <span key={tag}><Link to={`/tags/${tag}`}>{tag}</Link>{" "}</span>)}
+          <br />
+          {new Date(post.frontmatter.date).valueOf() + 1000 * 60 * 60 * 24 * 365 <= new Date().valueOf() ? "この記事は更新から1年以上経過しています" : null}
         </p>
         <div dangerouslySetInnerHTML={{ __html: post.html }} />
         <hr
