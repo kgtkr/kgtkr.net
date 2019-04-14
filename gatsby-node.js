@@ -3,7 +3,6 @@ const { createFilePath } = require(`gatsby-source-filesystem`)
 
 const createTagPages = (createPage, posts) => {
   const tagPageTemplate = path.resolve(`src/templates/tags.js`);
-  const allTagsTemplate = path.resolve(`src/templates/all-tags.js`);
 
   const postsByTags = {};
 
@@ -19,14 +18,6 @@ const createTagPages = (createPage, posts) => {
   });
 
   const tags = Object.keys(postsByTags);
-
-  createPage({
-    path: `/tags`,
-    component: allTagsTemplate,
-    context: {
-      tags: tags.sort(),
-    },
-  });
 
   tags.forEach(tagName => {
     const posts = postsByTags[tagName];
