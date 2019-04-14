@@ -5,7 +5,7 @@ tags: ["webassembly","languageprocessor"]
 name: webassembly-gc
 ---
 # 初めに
-[この記事](/2018/12/01/wasm-memory-allocator/)でメモリアロケータを実装したので今回はGCを実装してみます。
+[この記事](/blog/2018/12/01/wasm-memory-allocator/)でメモリアロケータを実装したので今回はGCを実装してみます。
 様々な事情でアロケータのコードが少し変わっているのでソースは[ここ](https://github.com/kgtkr/wasm-memory/blob/4e0b442e70f5d0f377ce967953fd5d65cafb8e8f/memory.wat)を見て下さい。
 大きな変更点はfreeの返り値でfreeしたブロックのポインタを取得出来るようになった事くらいです(ブロックが消失した時は0が返ります)。
 今回もwatでとりあえず動く物を作る事を目標に実装していきます。

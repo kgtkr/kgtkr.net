@@ -26,7 +26,7 @@ hyper(i,a,1)=hyper(i-1,a,hyper(i,a,b-1))
 
 # 型レベルタプル操作
 型レベルのタプル操作を行うので以下の記事を読んでおくといいかもしれません。
-[TypeScript 3.0のExtracting and spreading parameter lists with tuplesで遊ぼう](/2018/10/03/typescript-3-tuples)
+[TypeScript 3.0のExtracting and spreading parameter lists with tuplesで遊ぼう](/blog/2018/10/02/typescript-3-tuples)
 
 ちなみに今回は上の記事の型レベルタプル操作などをまとめた自作ライブラリ`typepark`を使いますが機能は上の記事の通りです。
 
