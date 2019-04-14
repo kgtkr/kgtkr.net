@@ -1,6 +1,7 @@
 ---
 title: WebAssemblyでGCを実装する
 date: "2018-12-01T22:00:16.000Z"
+update: "2018-12-01T22:00:16.000Z"
 tags: ["webassembly","languageprocessor"]
 name: webassembly-gc
 ---

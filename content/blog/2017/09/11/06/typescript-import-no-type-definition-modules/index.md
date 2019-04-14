@@ -1,6 +1,7 @@
 ---
 title: TypeScriptで型定義されていないモジュールを読み込む方法
 date: "2017-11-06T12:11:53.000Z"
+update: "2017-11-06T12:11:53.000Z"
 tags: ["typescript"]
 name: typescript-import-no-type-definition-modules
 ---

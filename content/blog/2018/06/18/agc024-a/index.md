@@ -1,6 +1,7 @@
 ---
 title: AGC024-A Fairnessの考察
 date: "2018-06-18T12:51:11.000Z"
+update: "2018-06-18T12:51:11.000Z"
 tags: ["procon"]
 name: agc024-a
 ---

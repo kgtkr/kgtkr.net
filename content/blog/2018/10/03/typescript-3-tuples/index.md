@@ -1,6 +1,7 @@
 ---
 title: TypeScript 3.0のExtracting and spreading parameter lists with tuplesで遊ぼう
 date: "2018-10-02T15:50:50.000Z"
+update: "2018-10-02T15:50:50.000Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-3-tuples
 ---

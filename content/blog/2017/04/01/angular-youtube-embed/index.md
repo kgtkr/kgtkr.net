@@ -1,6 +1,7 @@
 ---
 title: AngularでYouTube埋め込みをしようとしたらハマった
 date: "2017-04-01T03:08:56.000Z"
+update: "2017-04-01T03:08:56.000Z"
 tags: ["angular"]
 name: angular-youtube-embed
 ---

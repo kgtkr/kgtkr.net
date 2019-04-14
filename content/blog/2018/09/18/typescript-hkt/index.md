@@ -1,6 +1,7 @@
 ---
 title: TypeScriptで高カインド型(Higher kinded types)
 date: "2018-09-18T08:39:30.000Z"
+update: "2018-09-18T08:39:30.000Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-hkt
 ---

@@ -1,6 +1,7 @@
 ---
 title: TypeScriptで型レベルハイパー演算子
 date: "2019-04-12T09:14:53.000Z"
+update: "2019-04-12T09:14:53.000Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-type-level-hyper-operation
 ---
