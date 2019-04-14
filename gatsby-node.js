@@ -1,5 +1,7 @@
 const path = require(`path`)
 const { createFilePath } = require(`gatsby-source-filesystem`)
+const postToPath = require(`./src/utils/post-to-path`)
+
 
 const createTagPages = (createPage, posts) => {
   const tagPageTemplate = path.resolve(`src/templates/tags.js`);
@@ -52,6 +54,8 @@ exports.createPages = ({ graphql, actions }) => {
               frontmatter {
                 title
                 tags
+                name
+                date
               }
             }
           }
@@ -73,7 +77,7 @@ exports.createPages = ({ graphql, actions }) => {
       const next = index === 0 ? null : posts[index - 1].node
 
       createPage({
-        path: post.node.fields.slug,
+        path: postToPath(post.node),
         component: blogPost,
         context: {
           slug: post.node.fields.slug,

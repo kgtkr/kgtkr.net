@@ -7,7 +7,7 @@ import SEO from "../components/seo"
 import { rhythm, scale } from "../utils/typography"
 import "katex/dist/katex.min.css"
 import "prismjs/themes/prism-solarizedlight.css"
-
+import postToPath from "../utils/post-to-path";
 
 class BlogPostTemplate extends React.Component {
   render() {
@@ -54,14 +54,14 @@ class BlogPostTemplate extends React.Component {
         >
           <li>
             {previous && (
-              <Link to={previous.fields.slug} rel="prev">
+              <Link to={postToPath(previous)} rel="prev">
                 ← {previous.frontmatter.title}
               </Link>
             )}
           </li>
           <li>
             {next && (
-              <Link to={next.fields.slug} rel="next">
+              <Link to={postToPath(next)} rel="next">
                 {next.frontmatter.title} →
               </Link>
             )}

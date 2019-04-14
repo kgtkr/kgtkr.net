@@ -5,6 +5,7 @@ import Bio from "../components/bio"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
 import { rhythm } from "../utils/typography"
+import postToPath from "../utils/post-to-path";
 
 class BlogIndex extends React.Component {
   render() {
@@ -20,15 +21,15 @@ class BlogIndex extends React.Component {
         />
         <Bio />
         {posts.map(({ node }) => {
-          const title = node.frontmatter.title || node.efields.slug
+          const title = node.frontmatter.title || postToPath(node)
           return (
-            <div key={node.fields.slug}>
+            <div key={postToPath(node)}>
               <h3
                 style={{
                   marginBottom: rhythm(1 / 4),
                 }}
               >
-                <Link style={{ boxShadow: `none` }} to={node.fields.slug}>
+                <Link style={{ boxShadow: `none` }} to={postToPath(node)}>
                   {title}
                 </Link>
               </h3>

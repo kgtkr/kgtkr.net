@@ -3,6 +3,8 @@ import Link from 'gatsby-link';
 import Layout from "../components/layout"
 import SEO from "../components/seo"
 import { rhythm, scale } from "../utils/typography"
+import postToPath from "../utils/post-to-path"
+
 
 const Tags = ({ pathContext, location, data }) => {
   const { posts, tagName } = pathContext;
@@ -33,8 +35,8 @@ const Tags = ({ pathContext, location, data }) => {
           <ul>
             {posts.map(post => {
               return (
-                <li key={post.fields.slug}>
-                  <Link to={post.fields.slug}>
+                <li key={postToPath(post)}>
+                  <Link to={postToPath(post)}>
                     {post.frontmatter.title}
                   </Link>
                 </li>
