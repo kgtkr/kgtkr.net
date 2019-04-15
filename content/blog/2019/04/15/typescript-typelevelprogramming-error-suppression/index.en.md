@@ -10,7 +10,7 @@ otherLang: ["ja"]
 
 When type level programming, various errors occur.So we need to suppress it.  
 This article introduces two ways to suppress errors.  
-I was checked with v3.4.2.
+I checked with v3.4.2.
 
 
 ## Suppress type constraint error
