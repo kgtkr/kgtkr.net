@@ -35,7 +35,7 @@ class BlogPostTemplate extends React.Component {
           {moment(post.frontmatter.date).format("YYYY/MM/DD")}
           {" "}
           {post.frontmatter.tags.map(tag => <span key={tag}><Link to={`/tags/${tag}`}>{tag}</Link>{" "}</span>)}
-          {new Date(post.frontmatter.date).valueOf() + 1000 * 60 * 60 * 24 * 365 <= new Date().valueOf() ? <><br />この記事は更新から1年以上経過しています</> : null}
+          {new Date(post.frontmatter.update).valueOf() + 1000 * 60 * 60 * 24 * 365 <= new Date().valueOf() ? <><br />この記事は更新から1年以上経過しています</> : null}
           {otherLang.length !== 0
             ? <>
               <br />
