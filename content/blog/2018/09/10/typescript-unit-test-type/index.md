@@ -1,7 +1,7 @@
 ---
 title: TypeScriptで型のユニットテストをしたい
 date: "2018-09-10T08:42:11.000Z"
-update: "2018-09-10T08:42:11.000Z"
+update: "2019-04-22T12:12:04.994Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-unit-test-type
 lang: ja
@@ -10,26 +10,9 @@ otherLang: []
 # やり方
 
 ## 準備
-
-logical.ts
-```ts
-export type And<A extends boolean, B extends boolean> = A extends true ? (B extends true ? true : false) : false;
-export type Or<A extends boolean, B extends boolean> = A extends true ? true : (B extends true ? true : false);
-export type Xor<A extends boolean, B extends boolean> = A extends true ? (B extends true ? false : true) : (B extends true ? true : false);
-export type Not<X extends boolean> = X extends true ? false : true;
-```
-
 test.ts
 ```ts
-import { And, Not, Or } from "./logical";
-
-type IsExtends<A, B> = A extends B ? true : false;
-type TypeEqNotUnion<A, B> = And<IsExtends<A, B>, IsExtends<B, A>>;
-type ComparableType<T> = [T];
-type TypeEqNotAny<A, B> = TypeEqNotUnion<ComparableType<A>, ComparableType<B>>;
-type IsAny<T> = And<TypeEqNotAny<T, 1>, TypeEqNotAny<T, 2>>;
-type IsNotAny<T> = Not<IsAny<T>>;
-export type TypeEq<A, B> = Or<And<IsAny<A>, IsAny<B>>, And<And<IsNotAny<A>, IsNotAny<B>>, TypeEqNotAny<A, B>>>;
+export type TypeEq<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? true : false;
 
 export function assertType<_T extends true>() { }
 export function assertNotType<_T extends false>() { }
@@ -53,7 +36,6 @@ import { TypeEq, assertType, assertNotType } from "./test";
 
 assertType<TypeEq<1, 1>>();
 assertNotType<TypeEq<{}, { x: 1 }>>();
-assertType<TypeEq<{ x: 1, y: 1 }, { x: 1 } & { y: 1 }>>();
 assertNotType<TypeEq<1, 2>>();
 assertNotType<TypeEq<1 | 2, 1>>();
 assertNotType<TypeEq<1, never>>();
