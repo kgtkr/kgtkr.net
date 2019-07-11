@@ -6,7 +6,7 @@ module.exports = {
     siteUrl: `https://kgtkr.net/`,
     social: {
       twitter: `kgtkr`,
-      github: `kgtkr`
+      github: `kgtkr`,
     },
   },
   plugins: [
@@ -28,14 +28,14 @@ module.exports = {
       resolve: `gatsby-transformer-remark`,
       options: {
         plugins: [
-          `gatsby-remark-code-titles`,
-          'gatsby-remark-emojis',
-          'gatsby-remark-graphviz',
+          `gatsby-remark-code-filename`,
+          "gatsby-remark-emojis",
+          "gatsby-remark-graphviz",
           {
             resolve: "gatsby-remark-embed-snippet",
             options: {
               classPrefix: "language-",
-              directory: "."
+              directory: ".",
             },
           },
           `gatsby-remark-embed-youtube`,
@@ -57,20 +57,19 @@ module.exports = {
           {
             resolve: `gatsby-remark-katex`,
             options: {
-              strict: `ignore`
-            }
+              strict: `ignore`,
+            },
           },
           {
             resolve: `gatsby-remark-prismjs`,
             options: {
               classPrefix: "language-",
               inlineCodeMarker: null,
-              aliases: {
-              },
+              aliases: {},
               showLineNumbers: false,
               noInlineHighlight: false,
             },
-          }
+          },
         ],
       },
     },
