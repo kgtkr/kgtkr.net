@@ -108,4 +108,4 @@ const isString = defineIsT((x: unknown) =>
 
 しかし一定の書き方を守っていれば安全なのでちょっとしたミスで矛盾が生じなくなっただけかなりの進歩だと思う。  
 
-この記事で書いたことはライブラリ化して[GitHub](https://github.com/kgtkr/safe-type-predicate)という名前でリリースしてある。  
+この記事で書いたことはライブラリ化して[safe-type-predicate](https://github.com/kgtkr/safe-type-predicate)という名前でリリースしてある。  
