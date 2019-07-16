@@ -85,8 +85,9 @@ export function defineIsT<T, R extends T>(
 }
 ```
 
-`IsNotT`は`false`でもよかったがただの`false`より`unique symbol`を使ったnew typeっぽいことをしたほうが安全なためそうした。  
-`isT<T>`はnew typeのようなことをしつつ、`T`を取り出せるようにするため`_T: T`をつけた。  
+`IsT<T>`はnew typeと幽霊型のテクニックを、`IsNotT`はnew typeのテクニックを使っている。
+new typeは元の型には変換出来るが、元の型からはキャストなしでは変換出来ない型である。これはなくても動作するが、あったほうが`isT`, `isNotT`の戻り値以外の値が入ることを防止出来るのでより安全である。ここでは`& { _Tag: typeof isTSymbol }`と`& { _Tag: typeof isNotTSymbol }`の部分である。  
+幽霊型は型に別の型の情報を残すテクニックである。ここでは`& { _T: T }`の部分で`T`という型情報を残している。  
 
 これを使うことで以下のように書くことが出来るようになった。 
 
