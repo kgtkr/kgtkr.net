@@ -1,12 +1,13 @@
 ---
 title: TypeScriptでtype predicateを安全に使う方法
 date: "2019-07-16T10:20:59.944Z"
-update: "2019-07-16T10:20:59.944Z"
+update: "2019-07-17T14:59:35.372Z"
 tags: ["typescript"]
 name: use-type-predicate-safely-with-typescript
 lang: ja
 otherLang: []
 ---
+
 
 ## TL;DR
 
@@ -18,6 +19,9 @@ const isA = defineIsT((x: "a" | "b") =>
     x === "a" ? isT(x) : isNotT()
 );
 ```
+
+## GitHub
+[safe-type-predicate](https://github.com/kgtkr/safe-type-predicate)  
 
 ## type predicateとその問題点
 
@@ -98,7 +102,13 @@ const isString = defineIsT((x: unknown) =>
 );
 ```
 
-もちろん以下のような書き方をされれば型システムと動作に矛盾が生じる。
+そしてここまで書いた事は`safe-type-predicate`という名前でライブラリ化して公開している。
+
+
+## カスタムtslintルール
+
+`safe-type-predicate`を使う事で何もしないよりはかなり安全にtype predicateを使うことが出来るようになった。  
+しかし以下のような書き方をされれば当然型システムと動作に矛盾が生じる。  
 
 ```ts
 // isString: (x: unknown) => x is string
@@ -107,6 +117,9 @@ const isString = defineIsT((x: unknown) =>
 );
 ```
 
-しかし一定の書き方を守っていれば安全なのでちょっとしたミスで矛盾が生じなくなっただけかなりの進歩だと思う。  
+なぜなら「一定の書き方に従っている限り安全」ということを目指して作ったライブラリだからだ。
+そこで「一定の書き方」を強制させればよいのではないかと考えtslintルールを作り、`tslint-safe-type-predicate`という名前で公開した。  
+`npm i -D tslint-safe-type-predicate`して、`tslint.json`の`extends`に`"tslint-safe-type-predicate"`を追加するだけで使える。    
+こうすることで例えば上の例では以下の画像のような警告を出してくれる。  
 
-この記事で書いたことはライブラリ化して[safe-type-predicate](https://github.com/kgtkr/safe-type-predicate)という名前でリリースしてある。  
+![](1.png)
