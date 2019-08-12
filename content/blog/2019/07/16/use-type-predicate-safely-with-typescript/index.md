@@ -26,9 +26,9 @@ const isA = defineIsT((x: "a" | "b") =>
 ## type predicateとその問題点
 
 TypeScriptにはtype predicateという機能が存在する。  
-これは`x is T`という型を関数の戻り値に使うことで`x`が`T`型であれば`true`を返し、そうでなければ`false`を返すことを表す機能である。  
+これは適当な型の値`x`を受け取り`boolean`を返す関数の戻り値を`x is T`と書くことで､`true`を返せば`x`が`T`型､`false`を返せばそうでないことを表す機能である。 
 これによってユーザー定義関数で型ガードを行うことを可能にしている。  
-例えば受け取った引数が`string`型であるかを判定する関数は以下のようになる。
+例えば`unknown`型、つまり任意の型を受け取りその値が`string`型であるかを返す関数は次のようになる。
 
 ```ts
 function isString(x: unknown): x is string {
