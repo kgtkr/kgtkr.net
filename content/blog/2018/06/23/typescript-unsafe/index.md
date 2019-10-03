@@ -201,7 +201,7 @@ TSの型システムではメソッドと関数の区別は行われず、メソ
 ```ts
 class Hoge {
   f() {
-    //this:Hoge->undefined
+    // this: Hoge->undefined
   }
 }
 
@@ -224,7 +224,7 @@ declare const x: string;
 class Hoge {
   x!: string;
   f() {
-    //x:string->undefined
+    // x: string->undefined
   }
 }
 
