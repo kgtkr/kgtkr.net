@@ -1,37 +1,39 @@
 ---
 title: TypeScriptのunsafeな操作まとめ
 date: "2018-06-23T08:16:36.000Z"
-update: "2018-06-23T08:16:36.000Z"
+update: "2019-10-03T05:25:22.937Z"
 tags: ["typescript"]
 name: typescript-unsafe
 lang: ja
 otherLang: []
 ---
 # 初めに
-TypeScript(以下TS)はJSに型を付けた静的型付け言語です。
-しかし型システムにはかなりの罠があり、知らないと型システム整合性を壊してしまいます。
+TypeScript(以下TS)はJSに静的型システムを取り入れた言語です。
+しかしTSの型システムには多くの穴があり、知らないと型の整合性を壊してしまいます。(型システムが健全でないという)
 そこで今回はそのような操作をまとめてみました。
-間違え、不足等があればコメントで指摘してくれると嬉しいです。
-ソースコードは[GitHub](https://github.com/kgtkr/ts-unsafe)においています。
+間違え、不足等があればコメントで指摘してくださると助かります。
 
-# なぜ型システムが壊れるのか
-TSはコンパイルすると型に関する情報を全て消去したJSを出力するからです。
-当然実行時の型チェックは行われません。
-これが型システムが壊れる原因です。
-これは実行速度とのトレードオフです。
+# この記事の目的
+この記事は「TSの型システムの穴」を批判することが目的ではありません。
+実行時のオーバーヘッドを無くすことや利便性などとのトレードオフであることは理解しています。
+TSを書く多くの人が「このような操作をすると型の整合性が壊れることがある」ということを理解した上で使ってほしいというのがこの記事の目的です。
 
+# 型システムの健全性とは
+静的言語に限ると、「コンパイルが通ったなら実行時に型情報と値が矛盾しない事が保証されている」事を言います。
+例えば「number型の変数に`"hello"`が入っている事は絶対にありえない」といった感じです。Javaなど多くの静的型付け言語の型システムは健全、つまりこのような事が保証されているので「当たり前では？」と思うかもしれませんがTSではこれが保証されていません。
 
-## この記事の目的
-この記事は「TSはすぐ型システムが壊れるのでひどい」と批判することが目的ではありません。
-実行時のオーバーヘッドを無くすことや便利さなどとのトレードオフであることは理解しています。
-「このような操作をすると壊れるかもしれない」ということを知ってもらう事が目的です。
+# なぜ型システムが健全になっていないのか
+これは実行速度や利便性とのトレードオフです。
+「とりあえず型をanyにする」という選択を認める事でJSから移行しやすくしたり、「キャスト時に実行時型チェックを行わない事でJSより遅くなるのを防げる」といったメリットもあります。
+
 
 # unsafeの定義
 `unsafe`は公式の用語ではなく私が勝手にそう呼んでいるだけなので用語を定義します。
 
-* 型システムが整合性を取れている状態で行うと型システムの整合性を壊す事がある操作
 
-## unsafeで無い例
+* それ以前のコードで型システムの整合性が保たれていても、型システムの整合性を壊す可能性がある操作
+
+## unsafeではない例
 ### 例外
 TSの型システムでは例外を投げるかは保証されていないのでunsafeではありません。
 
@@ -40,26 +42,26 @@ function throwError(): string {
   throw new Error();
 }
 
-const x = throwError();//stringが返ってくると型は言っているのに例外を投げられた
+const x = throwError(); // stringが返ってくると型は言っているのに例外が飛んできた
 ```
 
 ### 既に整合性が壊れている
 
 ```ts
 const x: string = {} as any;
-const y: string = x;//yはstringのはずなのに{}が代入
+const y: string = x; // yはstringのはずなのに{}が代入
 ```
 これは1行目の時点で既に型システムの整合性が壊れているので、2行目の代入操作はunsafeではありません。
 1行目のキャストがunsafeです。
 
 # バージョン、設定など
-TypeScript:2.9.2を使います。
+TypeScript:3.6.3を使います。
 またstrictを有効にしている事を前提に話を進めます。
 string型にnullやundefinedが入るなどといった場合もunsafeと見なします。
 またstrictを有効にすることで安全になる操作も扱いません。
 
 # 一覧
-コメントの`x:T1→T2`は`xは型システムではT1であるが、実際はT2`という事を示します。
+コメントの`x: T->X`は`xの型はTだが、Xという値が入っている`という事を表しています。
 
 ## 型変換関連
 ### キャスト
@@ -67,9 +69,9 @@ string型にnullやundefinedが入るなどといった場合もunsafeと見な�
 
 ```ts
 const a: string = 1 as any;
-//a:string→number
+// a: string->1
 const b = <string><any>1;
-//b:string→number
+// b: string->1
 ```
 
 ### non-null assertion operator
@@ -78,19 +80,20 @@ const b = <string><any>1;
 ```ts
 const a: string | null = null;
 const x: string = a!;
-//x:string→null
+// x: string->null
 
 const b: number | undefined = undefined;
 const y: number = b!;
-//y:number→unefined
+// y: number->undefined
 ```
 
-### anyから他の型への変換
-この問題を解決するためにTS3.0で`unknown`型が導入される予定です。
+### any型の使用
+この問題を解決するために`unknown`型があります。
 
 ```ts
-const x: string = JSON.parse("1");
-//x:string→number
+const x: any = 1;
+const y: string = x;
+// y: string->1
 ```
 
 ## Type Guard関連
@@ -107,7 +110,7 @@ class Hoge {
   f() {
     if (this.x !== null) {
       this.setXNull();
-      //this.x:string→null
+      // this.x: string->null
     }
   }
 }
@@ -130,7 +133,7 @@ class Hoge {
   async f() {
     if (this.x !== null) {
       await sleep(1000);
-      //this.x:string→null
+      // this.x: string->null
     }
   }
 }
@@ -151,7 +154,7 @@ function xIsString(x: any): x is string {
 
 const s: any = 1;
 if (xIsString(s)) {
-  //s:string→number
+  // s: string->1
 }
 ```
 
@@ -173,17 +176,17 @@ class Hoge {
 
 const hoge = new Hoge();
 if (hoge.x !== null) {
-  //hoge.x:string→実際
+  // hoge.x: string->null
 }
 ```
 
 ### in演算子
-`{x:number}`に`{x:number,y:number}`を代入することは当然出来ますが…
+`{ x: number }`に`{ x:number, y:number }`を代入することは当然出来ますが…
 
 ```ts
 function f(x: { x: number } | { a: number, b: number }) {
   if ("a" in x) {
-    //x.b:number→undefined
+    // x.b: number->undefined
   }
 }
 
@@ -198,7 +201,7 @@ TSの型システムではメソッドと関数の区別は行われず、メソ
 ```ts
 class Hoge {
   f() {
-    //this:Hoge→undefined
+    //this:Hoge->undefined
   }
 }
 
@@ -211,7 +214,7 @@ f();
 
 ```ts
 declare const x: string;
-//x:string→undefined
+// x: string->undefined
 ```
 
 ## Definite Assignment Assertion
@@ -221,33 +224,33 @@ declare const x: string;
 class Hoge {
   x!: string;
   f() {
-    //x:string→undefined
+    //x:string->undefined
   }
 }
 
 new Hoge().f();
 ```
 
-## Indexアクセス
-JSの仕様上、存在しないインデックスを指定しても例外を投げずにundefinedを返しますが、TSの型システムは`T|undefined`ではなく`T`を返すと見なすので型システムを壊す事があります。
+## indexアクセス
+JSの仕様上、存在しないインデックスを指定しても例外を投げずに`undefined`を返しますが、TSの型システムは`T | undefined`ではなく`T`を返すと見なすので型システムを壊す事があります。
 [issue](https://github.com/Microsoft/TypeScript/issues/13778)
 
 ```ts
 const arr: number[] = [];
 const n = arr[0];
-//n:number→undefined
+// n: number->undefined
 const obj: { [key: string]: number } = {};
 const s = obj["key"];
-//s:number→undefined
+// s: number->undefined
 ```
 
 ## ts-ignore
 型チェックを無効にする機能です。当然何が起こるか分かりません。
 
 ```ts
-//@ts-ignore
+// @ts-ignore
 const x: string = 1;
-//x:string→number
+// x: string->number
 ```
 
 ## 引数に代入
@@ -258,5 +261,46 @@ function f(x: { a: string | null }) {
 
 const obj = { a: "str" };
 f(obj);
-//obj.a:string→null
+// obj.a: string->null
+```
+
+## instanceof
+TSは構造的部分型を採用しているので`A`型だからといって`A`型を`extends`している、つまり`x instanceof A`が`true`になるとは限りませんがこれで型ガードできるようになっているのが原因で以下のような問題が発生します。
+
+```ts
+class A {}
+class B {}
+function f(x: A | number){
+    if(!(x instanceof A)){
+        // x: number -> {}
+    }
+}
+
+f(new B());
+```
+
+
+
+## 共変
+TSはメソッドの引数に型パラメーターが使われていても共変性を持ちます。
+共変とは`A extends B`の時`F<A> extends F<B>`となる性質です。引数に型パラメーターが使われている時本来これは健全ではないのですが、利便性などとのトレードオフでこれが許されているので以下のような事がありえます。
+`引数に代入`と問題の種類としては似ています。
+
+```ts
+class Hoge<T> {
+    constructor(private x: T){}
+
+    getX(): T {
+        return this.x;
+    }
+
+    setX(x: T){
+        this.x = x;
+    }
+}
+
+const x: Hoge<{ x: number }> = new Hoge({ x: 1 });
+const y: Hoge<{}> = x;
+y.setX({});
+// x.getX(): { x: number } -> {}
 ```
