@@ -227,17 +227,237 @@ https://github.com/WebAssembly/spec/tree/master/test/core
 wastというwatの拡張フォーマットになっており、これはwabtのwast2jsonを使うことでjsonと複数のwasmに変換することができます。
 jsonファイルには「このwasmのこの関数を実行した時結果はこうなる」といったテストケースが書かれているのでwasmファイルを自作インタプリタで動かして、jsonを読み込んでその通りにテストを実行するだけでデバッグにとても役立ちおすすめです。
 
-## md5の実行
-Rustでmd5を計算するコードをwasmにコンパイルし、それを自作インタプリタ上で動かしてみました。
-やり取りはCStringを使っています。
-
 ## 自作言語を自作インタプリタで動かす
-一年前にHaskellでwasmにコンパイルする自作言語を作ったので、それを実行してみたところ上手く動かすことができました。
+一年前にHaskellでwasmにコンパイルする自作言語を作ったので([WebAssemblyにコンパイルする言語を実装する
+](https://qiita.com/kgtkr/items/de4c616cdcd89a58df72))、それを実行してみたところ上手く動かすことができました。
+
+### 自作言語のコード
+
+```
+extern fun "memory" "malloc" malloc(x: i32): i32
+extern fun "io" "print" print(x: i32)
+
+fun main() = {
+    let n = 10;
+    let arr = [i32; n];
+    for(let i = 0; i < n; i = i + 1) {
+        arr[i] = i;
+    };
+    map(inc, n, arr);
+    map(double, n, arr);
+    map(dec, n, arr);
+    forEach(print, n, arr);
+}
+
+fun double(x: i32): i32 = x * 2
+
+fun inc(x: i32): i32 = x + 1
+
+fun dec(x: i32): i32 = x - 1
+
+fun map(f: (i32) => i32, n:i32, arr: [i32]) = {
+    for(let i = 0; i< n; i = i + 1) {
+        arr[i] = f(arr[i]);
+    };
+}
+
+fun forEach(f: (i32) =>, n: i32, arr: [i32]) = {
+    for(let i = 0; i < n; i = i + 1) {
+        f(arr[i]);
+    };
+}
+```
+
+### rustコード
+`cl8w.wasm`は自作言語のコンパイル結果、`memory.wasm`は自作言語の実行に必要なランタイム
+
+```rs
+let memory = ExternalVal::Mem(MemAddr(Rc::new(RefCell::new(MemInst::from_min_max(
+    10, None,
+)))));
+let print = ExternalVal::Func(FuncAddr(Rc::new(RefCell::new(FuncInst::HostFunc {
+    type_: FuncType(vec![ValType::I32], vec![]),
+    host_code: |params| match &params[..] {
+        &[Val::I32(x)] => {
+            println!("{}", x);
+            None
+        }
+        _ => panic!(),
+    },
+}))));
+
+let memory_module =
+    Module::decode_end(&std::fs::read("./example/memory.wasm").unwrap()).unwrap();
+let memory_instance = ModuleInst::new(
+    &memory_module,
+    map!(
+        "resource".to_string() => map!(
+            "memory".to_string() => memory.clone()
+        )
+    ),
+);
+
+let main_module =
+    Module::decode_end(&std::fs::read("./example/cl8w.wasm").unwrap()).unwrap();
+let main_instance = ModuleInst::new(
+    &main_module,
+    map!(
+        "resource".to_string() => map!(
+            "memory".to_string() => memory.clone()
+        ),
+        "memory".to_string() => memory_instance.exports(),
+        "io".to_string() => map!(
+            "print".to_string() => print.clone()
+        )
+    ),
+);
+
+main_instance.export("main").unwrap_func().call(vec![]);
+```
+
+### 実行結果
+```
+1
+3
+5
+7
+9
+11
+13
+15
+17
+19
+```
 
 ## 自作インタプリタ上で自作インタプリタを動かす
 Rustはwasmにコンパイルすることができるので自作インタプリタ上で自作言語を動かすコードをwasmにコンパイルし、それを自作インタプリタで動かしてみました。
-上手く動かすことが出来ましたが、実行に数分かかり、かなり遅いのでパフォーマンスの改善も多少はしたいです。
+
+### 自作言語のコード
+さっきと同じなので省略
+
+### wasmにコンパイルするRustコード
+
+```rs
+fn main() {}
+
+extern "C" {
+    fn print(x: i32) -> ();
+}
+
+#[no_mangle]
+pub extern "C" fn run() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    use wasm_rs::binary::Decoder;
+    use wasm_rs::exec::instance::*;
+    use wasm_rs::structure::modules::*;
+    use wasm_rs::structure::types::*;
+
+    let memory = ExternalVal::Mem(MemAddr(Rc::new(RefCell::new(MemInst::from_min_max(
+        10, None,
+    )))));
+    let print = ExternalVal::Func(FuncAddr(Rc::new(RefCell::new(FuncInst::HostFunc {
+        type_: FuncType(vec![ValType::I32], vec![]),
+        host_code: |params| match &params[..] {
+            &[Val::I32(x)] => {
+                unsafe {
+                    print(x);
+                }
+                None
+            }
+            _ => panic!(),
+        },
+    }))));
+
+    let memory_module = Module::decode_end(include_bytes!("../example/memory.wasm")).unwrap();
+    let memory_instance = ModuleInst::new(
+        &memory_module,
+        map!(
+            "resource".to_string() => map!(
+                "memory".to_string() => memory.clone()
+            )
+        ),
+    );
+
+    let main_module = Module::decode_end(include_bytes!("../example/cl8w.wasm")).unwrap();
+    let main_instance = ModuleInst::new(
+        &main_module,
+        map!(
+            "resource".to_string() => map!(
+                "memory".to_string() => memory.clone()
+            ),
+            "memory".to_string() => memory_instance.exports(),
+            "io".to_string() => map!(
+                "print".to_string() => print.clone()
+            )
+        ),
+    );
+
+    main_instance.export("main").unwrap_func().call(vec![]);
+}
+```
+
+### wasmにコンパイルしたRustを読み込んで実行するコード
+`output.wasm`は自作インタプリタ上で自作言語を動かすRustコードを`wasm32-unknown-unknown`にコンパイルしたもの
+
+```rs
+let print = ExternalVal::Func(FuncAddr(Rc::new(RefCell::new(FuncInst::HostFunc {
+    type_: FuncType(vec![ValType::I32], vec![]),
+    host_code: |params| match &params[..] {
+        &[Val::I32(x)] => {
+            println!("{}", x);
+            None
+        }
+        _ => panic!(),
+    },
+}))));
+
+let module =
+    Module::decode_end(&std::fs::read("./example/output.wasm").unwrap())
+        .unwrap();
+let instance = ModuleInst::new(
+    &module,
+    map!(
+        "env".to_string() => map!(
+            "print".to_string() => print
+        )
+    ),
+);
+
+instance.export("run").unwrap_func().call(vec![]);
+```
+
+### 実行結果
+手元環境で実行時間の計測もしてみました。どちらのRustコードもreleaseビルドです。
+
+```
+1
+3
+5
+7
+9
+11
+13
+15
+17
+19
+
+
+real    6m45.596s
+user    5m41.276s
+sys     0m3.563s
+```
+
+遅すぎますね。パフォーマンス無視で実装したとはいえ流石に遅すぎるので改善したいです。
+
+ちなみに`output.wasm`をnode.js上で実行すると実行時間は以下のようになりました。
+
+```
+real    0m0.294s
+user    0m0.724s
+sys     0m0.068s
+```
 
 ## これからやること
-まだ不完全なのでとりあえず小数命令の実装出来てないやつを実装してしまいたいです。
-また検証フェーズの実装を一切行っていないのでそこもして、公式のwastテストケースは全て通る事を目指したいです。
+まだ小数命令の一部と検証フェーズの実装が出来ていないのでそれの実装をしてしまいたいです。  
+これを実装できれば公式のテストケースが全て通るはずなのでそこまで出来たら多少のパフォーマンス改善や、そのうちwasmに入るはずの複数の返り値等の実装もしてみようと思っています。
