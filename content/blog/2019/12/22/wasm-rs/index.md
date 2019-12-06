@@ -132,20 +132,21 @@ identity_encode_decode::<ValType>();
 
 ```rs
 pub struct Stack {
-    // 関数呼び出しのときにpushされる
+    // 関数の呼び出しスタック
+    // 関数が呼び出されるとpushされ、関数から戻るとpopされる
     pub stack: Vec<FrameStack>,
 }
 
 
 pub struct FrameStack {
-    // Frameはローカル変数などを管理する
+    // ローカル変数情報などが入っている
     pub frame: Frame,
-    // 制御構文に入るとpushされる
+    // 制御構文に入るとpushされ、抜けるとpopされる
     pub stack: Vec<LabelStack>,
 }
 
 pub struct LabelStack {
-    // Label(後記)に関するデータ。継続などを持つ
+    // Label(後記)に関するデータ
     pub label: Label,
     // 未実行命令のスタック
     // AdminInstrについては後記
@@ -157,8 +158,9 @@ pub struct LabelStack {
 }
 ```
 
-`Label`というのは命令の継続を持っています。これは制御構文に入ると作られる継続付きブロックのようなものです。通常はブロック内部が実行されますが、`br`命令でジャンプされるとブロックの中身の実行が中断され継続が実行されます。前書いた[WebAssemblyのbr命令について
-](https://qiita.com/kgtkr/items/2c39bb2cbbbfd0e0e14b)という記事を読むと分かるかもしれません。`AdminInstr`というのは仕様書の`Administrative Instructions`に対応しています。これは`Structure`に出てくる`instr`の拡張で実行仕様を書くためにいくつかの命令が加えられています。今回は以下のように定義しました。  
+`Label`というのは命令の継続を持っています。これは制御構文に入ると作られる継続付きブロックのようなものです。通常は本体の命令が実行され、最後まで実行するとその`label`を抜けます。しかし`br`命令で`label`を指定すると現在の命令が中断され、その`label`継続にジャンプし継続が実行されます。前書いた[WebAssemblyのbr命令について
+](https://qiita.com/kgtkr/items/2c39bb2cbbbfd0e0e14b)という記事を読むと分かるかもしれません。  
+`AdminInstr`というのは仕様書の`Administrative Instructions`に対応しています。これは`Structure`に出てくる`instr`の拡張で実行仕様を書くためにいくつかの命令が加えられています。今回は以下のように定義しました。  
 
 ```rs
 pub enum AdminInstr {
@@ -171,10 +173,10 @@ pub enum AdminInstr {
 ```
 
 `Stack`、`FrameStack`、`LabelStack`は評価を1ステップ進める`step`関数を持っています。
-`FrameStack#step`は`Option<ModuleLevelInstr>`を、`LabelStack#step`は`Option<FrameLevelInstr>`を返すようになっています。`FrameLevelInstr`は個々の`LabelStack`のデータだけでは完結しない命令を、`ModuleLevelInstr`は個々の`FrameStack`のデータだけでは完結しない命令です。そのように完結しない命令が来た時は返り値として返す事でそのデータを持つ親に処理を委譲しています。例えば`ModuleLevelInstr`には`Return`などが、`FrameLevelInstr`には`ModuleLevelInstr`に加えて`Br`などが含まれています。これは例えば`Return`は個々の`FrameStack`だけでは完結せず、`FrameStack`のスタックを操作する必要があり、`Br`も`LabelStack`だけでは完結せず、個々の`LabelStack`だけでは完結せず`LabelStack`のスタックを操作する必要があるからです。
+`FrameStack::step`は`Option<ModuleLevelInstr>`を、`LabelStack::step`は`Option<FrameLevelInstr>`を返すようになっています。`FrameLevelInstr`は個々の`LabelStack`のデータだけでは完結しない命令を、`ModuleLevelInstr`は個々の`FrameStack`のデータだけでは完結しない命令です。そのように完結しない命令が来た時は返り値として返す事でそのデータを持つ親に処理を委譲しています。例えば`ModuleLevelInstr`には`Return`などが、`FrameLevelInstr`には`ModuleLevelInstr`に加えて`Br`などが含まれています。これは例えば`Return`は個々の`FrameStack`だけでは完結せず、`FrameStack`のスタックを操作する必要があり、`Br`も`LabelStack`だけでは完結せず、個々の`LabelStack`だけでは完結せず`LabelStack`のスタックを操作する必要があるからです。
 
 例としていくつかの命令評価をあげます。
-まず`LabelStack#step`の`i32.add`の評価です。
+まず`LabelStack::step`の`i32.add`の評価です。
 
 ```rs
 match ... {
@@ -190,7 +192,7 @@ match ... {
 
 これはスタックから2つの`i32`値をpopして足した値をスタックにpushしています。オーバーフローに対応するために`+`ではなく`overflowing_add`を使っています。
 
-次に`Stack#step`の`return`を見てみましょう。
+次に`Stack::step`の`return`を見てみましょう。
 
 ```rs
 match ... {
