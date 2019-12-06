@@ -172,8 +172,27 @@ pub enum AdminInstr {
 }
 ```
 
-`Stack`、`FrameStack`、`LabelStack`は評価を1ステップ進める`step`関数を持っています。
-`FrameStack::step`は`Option<ModuleLevelInstr>`を、`LabelStack::step`は`Option<FrameLevelInstr>`を返すようになっています。`FrameLevelInstr`は個々の`LabelStack`のデータだけでは完結しない命令を、`ModuleLevelInstr`は個々の`FrameStack`のデータだけでは完結しない命令です。そのように完結しない命令が来た時は返り値として返す事でそのデータを持つ親に処理を委譲しています。例えば`ModuleLevelInstr`には`Return`などが、`FrameLevelInstr`には`ModuleLevelInstr`に加えて`Br`などが含まれています。これは例えば`Return`は個々の`FrameStack`だけでは完結せず、`FrameStack`のスタックを操作する必要があり、`Br`も`LabelStack`だけでは完結せず、個々の`LabelStack`だけでは完結せず`LabelStack`のスタックを操作する必要があるからです。
+`Stack`、`FrameStack`、`LabelStack`は評価を1ステップ進める`step`関数を持っており、`Stack::step`を呼び出すと、`FrameStack::step`を呼び出し、`FrameStack::step`を呼び出すと`LabelStack::step`を呼び出すようになっています。  
+そして、`FrameStack::step`は`Option<ModuleLevelInstr>`を、`LabelStack::step`は`Option<FrameLevelInstr>`を返すようになっています。`ModuleLevelInstr`は個々の`FrameStack`だけでは完結しない命令を表す`enum`で、`FrameLevelInstr`は個々の`LabelStack`だけでは完結しない命令を表す`enum`です。これらを返す事で親に実行できなかった処理を委譲することができます(これらが返された親は自信で処理を実行するか、さらに親に命令を返さなければいけません)
+`FrameStack::step`の疑似コードを書くと以下のような感じです。  
+
+```rs
+let frame_instr = current_label_stack.step(...);
+if let Some(frame_instr) = frame_instr {
+    match frame_instr {
+        /* frameで完結する処理 */ => {
+            …
+            None
+        }
+        /* frameでは完結しない処理 */ => {
+            …
+            Some(ModuleLevelInstr::...)
+        }
+    }
+}
+```
+
+例えば`ModuleLevelInstr`には`Return`などが、`FrameLevelInstr`には`ModuleLevelInstr`に加えて`Br`などが含まれています。これは例えば`Return`は個々の`FrameStack`だけでは完結せず、`FrameStack`のスタックを操作する必要があり、`Br`も`LabelStack`だけでは完結せず、個々の`LabelStack`だけでは完結せず`LabelStack`のスタックを操作する必要があるからです。
 
 例としていくつかの命令評価をあげます。
 まず`LabelStack::step`の`i32.add`の評価です。
@@ -217,7 +236,7 @@ match ... {
 これは現在の`Frame`をpopして、返り値の数(`frame.n`)を確認しています。それが0個でなければ(つまり1個なら)現在の`Label`のスタックの最後の値を、返り先の`Frame`の`Label`のスタックにpushしています。
 
 
-wasmでは可変メモリを複数のモジュールインスタンスが共有することがありますが、Rustでは`&mut`を複数作ることが出来ないのでArenaパターンか、`Rc<RefCell<T>>`を使う必要がありますが今回は後者で行いました。メモリリークを防ぐために`Weak`を大量に使う必要があったりして大変なのでここはもう少し考えたいです。
+wasmでは可変メモリを複数のモジュールインスタンスが共有することがありますが、Rustでは`&mut`を複数作ることが出来ないのでArenaパターンか、`Rc<RefCell<T>>`を使う必要がありますが今回は後者で行いました。メモリリークを防ぐために`Weak`を大量に使う必要があったりして大変なのでここは綺麗に書き換えせる方法があれば書き直したいです。  
 
 
 ## 公式のテストケース
