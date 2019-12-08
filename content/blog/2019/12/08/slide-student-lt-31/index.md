@@ -1,7 +1,7 @@
 ---
 title: 「第31回 学生LT in 東京」に登壇しました〜RustでWebAssemblyのインタプリタを作った話〜
-date: "2019-12-08T06:08:28.497Z"
-update: "2019-12-08T06:08:28.497Z"
+date: "2019-12-08T10:58:47.086Z"
+update: "2019-12-08T10:58:47.086Z"
 tags: ["webassembly", "stage"]
 name: slide-student-lt-31
 lang: ja
