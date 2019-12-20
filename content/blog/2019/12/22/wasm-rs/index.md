@@ -28,29 +28,21 @@ https://webassembly.github.io/spec/core/index.html
 * Text Format
 
 今回はこのうち`Validation`と`Text Format`を除く部分を実装しました。  
-`Validation`は読み込んだモジュールの静的検証についての仕様が書かれています。静的検証は型チェックみたいなものです。今回は間に合わなかったので実装しませんでした。つまり入力されるwasmコードは常に正しいものとして扱います。    
+`Validation`は読み込んだモジュールの静的検証についての仕様が書かれています。静的検証は型チェックみたいなものです。今回は間に合わなかったので実装しませんでした。つまり入力されるwasmコードは常に正しいものとして扱います。  
 `Text Format`はwatというwasmのテキストフォーマットについての仕様が書かれています。watとはwasmの命令と1対1対応の命令を持っているテキストフォーマットの言語です。wasmはバイナリフォーマットなので人間が読み書きするのは難しいですが、watであれば比較的読み書きしやすいです。wasmを機械語とするならwatはアセンブリ言語みたいなものです。この記事で出てくるwasmのサンプルコードは基本的にwatのコードです。これを実装することでwasmとwatの相互変換ができるようになりますが、今回はwasmバイナリを読み込んで実行できればいいので実装しませんでした。  
-wasmインタプリタの実装には直接関係ありませんが、バイナリフォーマットのデコードだけでなくエンコード処理も実装しています。これは元々wasmに出力する自作言語をrustで作ろうと思いバイナリの出力コードを書いていたらインタプリタを作りたくなったから作ったという経緯が理由だったりします。
+wasmインタプリタの実装には直接関係ありませんが、バイナリフォーマットのデコードだけでなくエンコード処理も実装しています。これは元々wasmに出力する自作言語をRustで作ろうと思いバイナリの出力コードを書いていたらインタプリタを作りたくなったから作ったという経緯が理由だったりします。
 
 上記のwasm仕様書はwasmのcore仕様の物です。他にもJSのWebAssembly APIについての仕様などがありますが今回は関係ないので無視します。
 
-## `Structure`
-
-
-
-## AST定義
-仕様書の`Structure`を読んでなるべくその通りにデータ構造を定義しました。
-命令は`inter = block [inter] | ...`のように再帰的なツリー構造で定義する方法と、`inter = block | end | ...`のようにフラットに定義する方法がありますが今回は仕様書に合わせてツリー構造で定義しました。
-
-### 例
-`valtype`の例です。`valtype`の定義は以下のようになっています。
+## Structure
+wasmモジュールの構造についての仕様が書かれています。ここを読んでRustのデータ構造に落とし込んでいきます。  
+例えば`valtype`は以下のように定義されています。
 
 ```
 valtype ::= i32 | i64 | f32 | f64
 ```
 
-これをRustのデータ型にすると以下のようになります。
-
+これをRustのデータ構造にすると以下のようになります。
 ```rs
 pub enum ValType {
     I32,
@@ -60,15 +52,65 @@ pub enum ValType {
 }
 ```
 
-そのままですね。
+このように順番に定義していって最終的には以下のようなwasmモジュールを表す構造体が定義出来れば完成です。
 
-## バイナリのデコード、エンコード
-仕様書の`Binary Format`を読みましょう。  
-特徴的な点としてバイナリ容量を圧縮するためにleb128という数値の可変長エンコード形式が様々な場所で使われています。また数値はlittle endianです。  
-デコードにはRustのnomというパーサーコンビネーターライブラリを使いました。  
+```rs
+pub struct Module {
+    pub types: Vec<FuncType>,
+    pub funcs: Vec<Func>,
+    pub tables: Vec<Table>,
+    pub mems: Vec<Mem>,
+    pub globals: Vec<Global>,
+    pub elem: Vec<Elem>,
+    pub data: Vec<Data>,
+    pub start: Option<Start>,
+    pub imports: Vec<Import>,
+    pub exports: Vec<Export>,
+}
+```
 
-### 例
-`valtype`のバイナリ仕様は以下のようになっています。
+
+## Binary Format
+`Execution`は長くなるので先にこっちの解説をします。この章はwasmのバイナリフォーマットについての仕様が書かれています。これを読み実装することで先ほど定義したデータ構造とバイナリデータの相互変換ができるようになります。今回はパーサーコンビネーターライブラリに`nom`を使いました。Rustには他にも`combine`というパーサーコンビネーターライブラリがあります。`combine`は使ったことがありましたが、`nom`は使ったことがなかったからという理由で`nom`を採用しただけで深い理由はありません。昔の`nom`はマクロをかなり多用したライブラリでしたがマクロを使わずに書けるようになっており使いやすかったです。他にもバイト列と数値型のデコード/エンコードなどを行うのに`byteorder`を、leb128という整数の可変長フォーマットのデコード/エンコードを行うのに`leb128`というライブラリを使っています。
+
+### DecoderとEncoderの定義
+まずバイト列からデコードできるデータ型を表すトレイトとして`Decoder`トレイトを定義します
+
+```rs
+use nom::{sequence::tuple, IResult};
+
+pub trait Decoder
+where
+    Self: std::marker::Sized,
+{
+    fn decode(input: &[u8]) -> IResult<&[u8], Self>;
+
+    fn decode_to_end(input: &[u8]) -> Result<Self, nom::Err<(&[u8], nom::error::ErrorKind)>> {
+        let (_, (x, _)) = tuple((Self::decode, eof()))(input)?;
+        Ok(x)
+    }
+```
+
+`decode`関数はバイト列を受け取って、未処理のバイト列と結果を返します。デコードは失敗する可能性があるので`nom`の`IResult`を使っています。  
+`decode_to_end`関数はバイト列を受けとって結果を返します。`eof`は空の入力を受け取ったら成功し、そうでなければ失敗する独自コンビネーターです。
+
+次にバイト列にエンコードできるデータ型を表すトレイトとして`Encoder`トレイトを定義します。
+
+```rs
+pub trait Encoder {
+    fn encode(&self, bytes: &mut Vec<u8>);
+
+    fn encode_to_vec(&self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        self.encode(&mut bytes);
+        bytes
+    }
+}
+```
+
+`encode`関数は可変のバイト列を受け取ってエンコード結果をそこに書き込んでいきます。`encode_to_vec`はエンコードしてバイト列を返します。 
+
+この2つのトレイトを先ほど`Structure`を見ながら定義したデータ構造に実装していくことでデコードとエンコードを行います。例えば`valtype`の仕様は以下のようになっています。
 
 ```
 valtype ::= 0x7F => i32
@@ -77,21 +119,9 @@ valtype ::= 0x7F => i32
         |   0x7C => f64
 ```
 
-これをRustコードにすると以下のようになります。
-
+これに`Decoder`と`Encoder`を実装すると以下のようになります。`token`は指定されたトークンを読む独自コンビネーターです。
 
 ```rs
-impl Encoder for ValType {
-    fn encode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(match self {
-            ValType::I32 => 0x7f,
-            ValType::I64 => 0x7e,
-            ValType::F32 => 0x7d,
-            ValType::F64 => 0x7c,
-        });
-    }
-}
-
 impl Decoder for ValType {
     fn decode(input: &[u8]) -> IResult<&[u8], ValType> {
         alt((
@@ -102,9 +132,155 @@ impl Decoder for ValType {
         ))(input)
     }
 }
+
+impl Encoder for ValType {
+    fn encode(&self, bytes: &mut Vec<u8>) {
+        bytes.push(match self {
+            ValType::I32 => 0x7f,
+            ValType::I64 => 0x7e,
+            ValType::F32 => 0x7d,
+            ValType::F64 => 0x7c,
+        });
+    }
+}
 ```
 
-`Encoder`と`Decoder`は独自のトレイトです。`encode`はデータ型をと可変バイト列を受け取って受け取ったバイト列にエンコード結果を書き込みます。`decode`はバイト列を受け取ってパースし、残りのバイト列と結果型を返します。`decode`は失敗することがあります。  
+### leb128のデコード、エンコード
+Rustではバイナリ容量を節約するために`leb128`という可変長の整数エンコード形式を使っています。このエンコード形式は小さな数値であれば1バイトにエンコードでき、また任意の大きな数値を扱うことができます。ただしwasmでは大きさの上限が仕様で決まっています。また符号付きと符号なしがありますが両方使われています。  
+例えば`u32`に対する実装は以下のようになっています。
+
+```rs
+impl Decoder for u32 {
+    fn decode(input: &[u8]) -> IResult<&[u8], u32> {
+        parser::io_read(|rb| {
+            leb128::read::unsigned(rb)
+                .ok()
+                .and_then(|x| u32::try_from(x).ok())
+        })(input)
+    }
+}
+
+impl Encoder for u32 {
+    fn encode(&self, bytes: &mut Vec<u8>) {
+        leb128::write::unsigned(bytes, *self as u64).unwrap();
+    }
+}
+```
+
+`io_read`は`io::Reader`を受け取ってデコードするライブラリの関数を`nom`のコンビネーターに変換する独自コンビネーターです。ここでは`leb128`というライブラリを使うことで簡単に実装しています。
+
+### Sectionについて
+バイナリ仕様には`Section`というものが出てきます。`Section`は`Type Section`、`Import Section`などがあり、さっき定義した`Module`構造体の各フィールドと大体対応しています。ただし`funcs`フィールドは関数のシグネチャのみの`Function Section`と、関数の本体である`Code Section`に分かれています。これはシグネチャだけを先に定義することでバイト列のストリームを受け取ってデコードしたり、検証したりするためです。また、メタデータとして自由に使える`Custom Section`というものがあります。
+各セクションは`セクションID,本体のバイト数,本体`のようにエンコードされます。
+
+### モジュールのデコード/エンコード
+各セクションのデコーダー/エンコーダーや、セクションのコンビネーターをいい感じに定義して最終的に以下のようにデコーダーとエンコーダーをモジュールに実装します。  
+`p_costoms`は任意個のカスタムセクションをパースするパーサー、`p_section`はセクションIDと本体のデコーダーを受け取ってセクションのパーサーを作るコンビネーターです。セクションは省略することができるのでそこらへんの処理もいい感じにしています。`encode_section`はセクションをエンコードする関数で、セクションが空ならセクションごと省略してしまうみたいな処理が中に入っています。
+
+
+```rs
+impl Decoder for Module {
+    fn decode(input: &[u8]) -> IResult<&[u8], Module> {
+        map(
+            tuple((
+                tuple((
+                    parser::token(0x00),
+                    parser::token(0x61),
+                    parser::token(0x73),
+                    parser::token(0x6d),
+                    parser::token(0x01),
+                    parser::token(0x00),
+                    parser::token(0x00),
+                    parser::token(0x00),
+                )),
+                tuple((p_costoms, p_section(Byte(1), Vec::<FuncType>::decode))),
+                tuple((p_costoms, p_section(Byte(2), Vec::<Import>::decode))),
+                tuple((p_costoms, p_section(Byte(3), Vec::<TypeIdx>::decode))),
+                tuple((p_costoms, p_section(Byte(4), Vec::<Table>::decode))),
+                tuple((p_costoms, p_section(Byte(5), Vec::<Mem>::decode))),
+                tuple((p_costoms, p_section(Byte(6), Vec::<Global>::decode))),
+                tuple((p_costoms, p_section(Byte(7), Vec::<Export>::decode))),
+                tuple((p_costoms, p_section(Byte(8), Start::decode))),
+                tuple((p_costoms, p_section(Byte(9), Vec::<Elem>::decode))),
+                tuple((p_costoms, p_section(Byte(10), super::values::p_vec(p_code)))),
+                tuple((p_costoms, p_section(Byte(11), Vec::<Data>::decode))),
+                p_costoms,
+            )),
+            |(
+                _,
+                (_, types),
+                (_, imports),
+                (_, funcs),
+                (_, tables),
+                (_, mems),
+                (_, globals),
+                (_, exports),
+                (_, start),
+                (_, elem),
+                (_, code),
+                (_, data),
+                _,
+            )| Module {
+                types: types.unwrap_or_else(Vec::new),
+                funcs: funcs
+                    .unwrap_or_else(Vec::new)
+                    .into_iter()
+                    .zip(code.unwrap_or_else(Vec::new))
+                    .map(|(type_, (locals, body))| Func {
+                        type_,
+                        locals,
+                        body,
+                    })
+                    .collect::<Vec<_>>(),
+                imports: imports.unwrap_or_else(Vec::new),
+                tables: tables.unwrap_or_else(Vec::new),
+                mems: mems.unwrap_or_else(Vec::new),
+                globals: globals.unwrap_or_else(Vec::new),
+                exports: exports.unwrap_or_else(Vec::new),
+                start,
+                elem: elem.unwrap_or_else(Vec::new),
+                data: data.unwrap_or_else(Vec::new),
+            },
+        )(input)
+    }
+}
+
+impl Encoder for Module {
+    fn encode(&self, bytes: &mut Vec<u8>) {
+        bytes.push(0x00);
+        bytes.push(0x61);
+        bytes.push(0x73);
+        bytes.push(0x6d);
+
+        bytes.push(0x01);
+        bytes.push(0x00);
+        bytes.push(0x00);
+        bytes.push(0x00);
+
+        encode_section(Byte(1), &self.types, bytes);
+        encode_section(Byte(2), &self.imports, bytes);
+        encode_section(
+            Byte(3),
+            self.funcs.iter().map(|x| &x.type_).collect::<Vec<_>>(),
+            bytes,
+        );
+        encode_section(Byte(4), &self.tables, bytes);
+        encode_section(Byte(5), &self.mems, bytes);
+        encode_section(Byte(6), &self.globals, bytes);
+        encode_section(Byte(7), &self.exports, bytes);
+        encode_section(Byte(8), &self.start, bytes);
+        encode_section(Byte(9), &self.elem, bytes);
+        encode_section(
+            Byte(10),
+            self.funcs.iter().map(|x| Code(x)).collect::<Vec<_>>(),
+            bytes,
+        );
+        encode_section(Byte(11), &self.data, bytes);
+    }
+}
+```
+
+### バイナリを読んでみよう
 
 
 ### proptestを使った自動テスト
