@@ -394,8 +394,17 @@ identity_encode_decode::<ValType>();
 ただし問題もあり再帰構造を含むと`Arbitrary`トレイトの自動導出ができません。自分で`Arbitrary`トレイトの実装をするのは大変なので今回は再帰構造を含まないデータ型のみで`proptest`を使った自動テストを行いました。
 
 
-## 実行
-スタックマシンとなっていますがなるべく仕様書通りに実装するためにスタックを以下のように定義しました。コメントに解説を書きました。  
+## Execution
+wasmのランタイム構造、実行仕様などについて書かれています。実装には`num`、`frunk`、`generic-array`、`typenum`を使っています。`num`は数値に関するトレイトなどが定義されているライブラリです。`frunk`はGenericプログラミングをするためのライブラリで`HList`などが定義されています。`generic-array`は長さを型パラメーターで渡せる固定長配列を提供しているライブラリで、`typenum`は`generic-array`が依存している型レベル整数のライブラリです。
+
+### Genericプログラミングについて
+実装に`frunk`というライブラリのGenericとHListを使っています(CoproductやLabelledGenericもありますが今回は使いません)。
+HListは再帰的な構造を持つタプルのようなものです。例えば`(A, B, C, D)`をHListにすると`HCons<A, HCons<B, HCons<C, HCons<D, HNill>>>>`となります。そしてGenericは`Repr`という関連型を持つトレイトで、`HList`や`Coproduct`と相互変換できるデータ型を表します。`Repr`は変換先の型を表します。これの何が嬉しいかというと`Generic`さえマクロなどで自動導出してしまえばマクロを使わずに一般的にデータ型に様々なトレイトを実装することができるようになります。例えば、`impl PartialEq for HNil`、`impl<H: PartialEq, T: PartialEq + HList> PartialEq for HCons<H, T>`を実装してしまえば全てのフィールドが`PartialEq`を実装している任意の構造体で`PartialEq`が使えるようになります。とても便利ですね。これを今回は使ってスタックなどをいい感じに扱っています。
+
+## ランタイム構造の定義
+
+ランタイム構造を定義します。  
+スタックマシンとなっていますがなるべく仕様書通りに実装するためにスタックを以下のように定義しました。コメントに解説を書きました。
 
 ```rs
 pub struct Stack {
