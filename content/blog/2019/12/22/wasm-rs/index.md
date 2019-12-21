@@ -14,6 +14,9 @@ https://github.com/kgtkr/wasm-rs
 作った成果物のリポジトリです。まだpublishはしていませんがクレートになっています。  
 cargoのexample実行に対応しているのでそれを見ればだいたい分かると思います。
 
+今回は`adc-2019-12-22`というタグがついたコミットのソースを元に解説していきます。
+https://github.com/kgtkr/wasm-rs/tree/adc-2019-12-22
+
 ## 仕様書
 この記事では仕様書を読みながら順番に実装を解説していきます。  
 
@@ -35,6 +38,8 @@ wasmインタプリタの実装には直接関係ありませんが、バイナ�
 上記のwasm仕様書はwasmのcore仕様の物です。他にもJSのWebAssembly APIについての仕様などがありますが今回は関係ないので無視します。
 
 ## Structure
+[実装](https://github.com/kgtkr/wasm-rs/tree/adc-2019-12-22/src/structure)
+
 wasmモジュールの構造についての仕様が書かれています。ここを読んでRustのデータ構造に落とし込んでいきます。  
 例えば`valtype`は以下のように定義されています。
 
@@ -71,6 +76,8 @@ pub struct Module {
 
 
 ## Binary Format
+[実装](https://github.com/kgtkr/wasm-rs/tree/adc-2019-12-22/src/binary)
+
 `Execution`は長くなるので先にこっちの解説をします。この章はwasmのバイナリフォーマットについての仕様が書かれています。これを読み実装することで先ほど定義したデータ構造とバイナリデータの相互変換ができるようになります。今回はパーサーコンビネーターライブラリに`nom`を使いました。Rustには他にも`combine`というパーサーコンビネーターライブラリがあります。`combine`は使ったことがありましたが、`nom`は使ったことがなかったからという理由で`nom`を採用しただけで深い理由はありません。昔の`nom`はマクロをかなり多用したライブラリでしたがマクロを使わずに書けるようになっており使いやすかったです。他にもバイト列と数値型のデコード/エンコードなどを行うのに`byteorder`を、leb128という整数の可変長フォーマットのデコード/エンコードを行うのに`leb128`というライブラリを使っています。
 
 ### DecoderとEncoderの定義
@@ -167,15 +174,14 @@ impl Encoder for u32 {
 }
 ```
 
-`io_read`は`io::Reader`を受け取ってデコードするライブラリの関数を`nom`のコンビネーターに変換する独自コンビネーターです。ここでは`leb128`というライブラリを使うことで簡単に実装しています。
+`io_read`は`io::Reader`を受け取ってデコードするライブラリの関数を`nom`のコンビネーターに変換する独自コンビネーターです([ソース](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/binary/parser.rs#L58))。ここでは`leb128`というライブラリを使うことで簡単に実装しています。
 
 ### Sectionについて
-バイナリ仕様には`Section`というものが出てきます。`Section`は`Type Section`、`Import Section`などがあり、さっき定義した`Module`構造体の各フィールドと大体対応しています。ただし`funcs`フィールドは関数のシグネチャのみの`Function Section`と、関数の本体である`Code Section`に分かれています。これはシグネチャだけを先に定義することでバイト列のストリームを受け取ってデコードしたり、検証したりするためです。また、メタデータとして自由に使える`Custom Section`というものがあります。
+バイナリ仕様には`Section`というものが出てきます。`Section`は`Type Section`、`Import Section`などがあり、さっき定義した`Module`構造体の各フィールドと大体対応しています。ただし`funcs`フィールドは関数のシグネチャのみの`Function Section`と、関数の本体である`Code Section`に分かれています。これはシグネチャだけを先に定義することでバイト列のストリームを受け取ってデコードしたり、検証したりするためです。また、メタデータとして自由に使える`Custom Section`というものもあります。
 各セクションは`セクションID,本体のバイト数,本体`のようにエンコードされます。
 
 ### モジュールのデコード/エンコード
-各セクションのデコーダー/エンコーダーや、セクションのコンビネーターをいい感じに定義して最終的に以下のようにデコーダーとエンコーダーをモジュールに実装します。  
-`p_costoms`は任意個のカスタムセクションをパースするパーサー、`p_section`はセクションIDと本体のデコーダーを受け取ってセクションのパーサーを作るコンビネーターです。セクションは省略することができるのでそこらへんの処理もいい感じにしています。`encode_section`はセクションをエンコードする関数で、セクションが空ならセクションごと省略してしまうみたいな処理が中に入っています。
+各セクションのデコーダー/エンコーダーや、セクションのコンビネーターをいい感じに定義して最終的に以下のようにデコーダーとエンコーダーを`Module`に実装します。  
 
 
 ```rs
@@ -279,6 +285,8 @@ impl Encoder for Module {
     }
 }
 ```
+
+`p_costoms`は任意個のカスタムセクションをパースするパーサー([ソース](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/binary/modules.rs#L493))、`p_section`はセクションIDと本体のデコーダーを受け取ってセクションのパーサーを作るコンビネーター([ソース](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/binary/modules.rs#L442))です。セクションは省略することができるのでそこらへんの処理もいい感じにしています。`encode_section`はセクションをエンコードする関数で、セクションが空ならセクションごと省略してしまうみたいな処理が中に入っています([ソース](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/binary/modules.rs#L430))。このような「空であれば省略」といった処理を抽象化するのに空かの判定や、空でない値を取り出す機能を持つ`Zero`という名前のトレイトを定義していて、`Option<T>`と`Vec<T>`に実装しています。([ソース](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/binary/modules.rs#L20))
 
 ### バイナリを読んでみよう
 せっかくなのでwasmの簡単なバイナリを読んでみましょう。例にするwatは以下です。
@@ -395,13 +403,219 @@ identity_encode_decode::<ValType>();
 
 
 ## Execution
+[実装](https://github.com/kgtkr/wasm-rs/tree/adc-2019-12-22/src/exec)
+
 wasmのランタイム構造、実行仕様などについて書かれています。実装には`num`、`frunk`、`generic-array`、`typenum`を使っています。`num`は数値に関するトレイトなどが定義されているライブラリです。`frunk`はGenericプログラミングをするためのライブラリで`HList`などが定義されています。`generic-array`は長さを型パラメーターで渡せる固定長配列を提供しているライブラリで、`typenum`は`generic-array`が依存している型レベル整数のライブラリです。
 
 ### Genericプログラミングについて
 実装に`frunk`というライブラリのGenericとHListを使っています(CoproductやLabelledGenericもありますが今回は使いません)。
 HListは再帰的な構造を持つタプルのようなものです。例えば`(A, B, C, D)`をHListにすると`HCons<A, HCons<B, HCons<C, HCons<D, HNill>>>>`となります。そしてGenericは`Repr`という関連型を持つトレイトで、`HList`や`Coproduct`と相互変換できるデータ型を表します。`Repr`は変換先の型を表します。これの何が嬉しいかというと`Generic`トレイトさえマクロなどで自動導出してしまえばマクロを使わずに一般的にデータ型に様々なトレイトを実装することができるようになります。例えば、`impl PartialEq for HNil`、`impl<H: PartialEq, T: PartialEq + HList> PartialEq for HCons<H, T>`を実装してしまえば全てのフィールドが`PartialEq`を実装している任意の構造体で`PartialEq`が使えるようになります。再帰的な構造になっているので`()`、`(A,)`、`(A, B)`、`(A, B, C)`、`(A, B, C, D)`…の全てに実装するみたいな事をする必要はありません。とても便利ですね。
 
-## ランタイム構造の定義
+### ランタイム構造の定義
+#### スタックの値の定義
+[実装](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/val.rs)
+
+`val`は`i32`/`i64`/`f32`/`f64`のいずれかであると書かれているので以下のように定義します。
+
+```rs
+pub enum Val {
+    I32(i32),
+    I64(i64),
+    F32(f32),
+    F64(f64),
+}
+```
+
+`Val`の関連関数に、`val_type`という`Val`を受け取って`ValType`を返す関数、`unwrap_i32`のような`Val`を受け取って`i32`を返す関数(`Val::I32(x)`でなければパニック)も定義します。  
+そして次にいくつかのトレイトを定義します。
+
+まず`PrimitiveVal`です。
+
+```rs
+pub trait PrimitiveVal: Sized {
+    fn try_from_val(val: Val) -> Option<Self>;
+    fn wrap_val(self) -> Val;
+    fn type_() -> ValType;
+}
+```
+
+`i32`型などに実装するトレイトでスタックに入っているプリミティブ型であることを表します。
+
+次に`InterpretPrimitive`です。これは`PrimitiveVal`から解釈可能な型に実装するトレイトで、`PrimitiveVal`に加えて、`bool`、`u32`、`u64`に実装しています。
+
+```rs
+pub trait InterpretPrimitive {
+    type Primitive: PrimitiveVal;
+
+    fn to_primitive(self) -> Self::Primitive;
+    fn reinterpret(primitive: Self::Primitive) -> Self;
+}
+```
+
+最後に`InterpretVal`で、`Val`から解釈可能な型に実装します。`InterpretPrimitive`に加えて`Val`自身も実装しています。
+
+```rs
+pub trait InterpretVal: Sized {
+    fn try_interpret_val(val: Val) -> Option<Self>;
+    fn to_val(self) -> Val;
+}
+```
+
+#### 各インスタンスとアドレスの定義
+メモリーやテーブルのインスタンスやアドレスを定義します。`FooInst`と`FooAddr`を定義していき、`FooAddr`は`Rc<RefCell<FooInst>>`のnewtypeになります。外部に公開するのは`FooAddr`だけで、所有権の競合でパニックにならないように気をつけてインターフェイスを作っていきます。
+
+例えばメモリであれば以下のような構造体になります。
+
+```rs
+struct MemInst {
+    max: Option<usize>,
+    data: Vec<u8>,
+}
+
+pub struct MemAddr(Rc<RefCell<MemInst>>);
+```
+
+関数は色々工夫しているので詳細に解説します。仕様書を読むと`funcinst`はwasmの関数とホスト関数があります。そしてwasmの関数は`moduleinst`を持っています。しかし`moduleinst`は`funcaddr`を持っており循環参照になってしまいます。循環参照になると`Rc`ではメモリリークしてしまうので`funcinst`が持つ`moduleinst`は`Weak`を使っています。
+
+```rs
+pub(super) enum FuncInst {
+    RuntimeFunc {
+        type_: FuncType,
+        code: Func,
+        module: Weak<ModuleInst>,
+    },
+    HostFunc {
+        type_: FuncType,
+        host_code: Rc<dyn Fn(Vec<Val>) -> Result<Option<Val>, WasmError>>,
+    },
+}
+```
+
+`Weak`を使うと`FuncAddr`を呼び出す時点で`ModuleInst`が長く生存していることをプログラマが保証する必要がありますが、今回はこれで妥協しました。もう少しいい方法がありそうなので改善したいです。
+
+次にホスト関数の`FuncAddr`を簡単に作るするための工夫です。例えば`i32`を出力する関数は何もしないと以下のように書く必要があります。
+
+```rs
+FuncAddr(Rc::new(RefCell::new(FuncInst::HostFunc {
+    type_: FuncType(vec![ValType::I32], vec![]),
+    host_code: Rc::new(|params| {
+        match &params[..] {
+            [Val::I32(x)] => {
+              println("{}", x);
+              Ok(None)
+            },
+            _ => panic!()
+        }
+    })
+})))
+```
+
+これが以下のように書けたら便利ですね。
+
+```rs
+FuncAddr::alloc_host(|(x,): (i32,)| {
+  println("{}", x);
+  Ok(())
+})
+```
+
+これに`frunk`を使います。
+まず`ValTypeable`というトレイトを定義します。これはある型を`Vec<ValType>`に変換する機能を持ったトレイトです。`write_valtype`を実装するようになっているのは計算量を抑えるためで`State`モナドみたいな物です。
+
+```rs
+pub trait ValTypeable {
+    fn write_valtype(types: &mut Vec<ValType>);
+    fn to_valtype() -> Vec<ValType> {
+        let mut types = Vec::new();
+        Self::write_valtype(&mut types);
+        types
+    }
+}
+```
+
+これを各型に実装していきます。まず`InterpretPrimitive`を実装している型であればその型の解釈元のプリミティブ型になります。例えば`i32::to_valtype() == vec![ValType::I32]`です。
+
+```rs
+impl<T: InterpretPrimitive> ValTypeable for T {
+    fn write_valtype(types: &mut Vec<ValType>) {
+        types.push(T::Primitive::type_());
+    }
+}
+```
+
+次に`HNil`、つまり`()`のようなものに実装します。これは`vec![]`を返します。
+
+```rs
+impl ValTypeable for HNil {
+    fn write_valtype(_: &mut Vec<ValType>) {}
+}
+```
+
+最後に`HCons<H, T>`に実装します。これは順番に呼び出すだけです。
+
+```rs
+impl<H: ValTypeable, T: HList + ValTypeable> ValTypeable for HCons<H, T> {
+    fn write_valtype(types: &mut Vec<ValType>) {
+        H::write_valtype(types);
+        T::write_valtype(types);
+    }
+}
+```
+
+これによって各要素が`InterpretPrimitive`を実装している`HList`全てで使えるようになりました。タプルは`Generic`を実装しているので、例えば`(i32, i64, bool)::Repr::to_valtype() == vec![ValType::I32, ValType::I64, ValType::I32]`です。(`T::Repr`は`HList`に変換した時の結果型)
+
+同じような感じである型の値を`Option<Val>`に変換する`ToOptionVal`と、`Vec<Val>`からある型の値に変換する`FromVecVal`を定義します。
+`ToOptionVal`は返り値を`Option<Val>`に変換するのに、`FromVecVal`は引数の`Vec<Val>`から変換するのに使います。
+
+```rs
+pub trait ToOptionVal {
+    fn to_option_val(self) -> Option<Val>;
+}
+
+pub trait FromVecVal: Sized {
+    fn from_vec_val_pop_tail(vals: &mut Vec<Val>) -> Self;
+
+    fn from_vec_val(mut vals: Vec<Val>) -> Self {
+        let res = Self::from_vec_val_pop_tail(&mut vals);
+        assert_eq!(vals.len(), 0);
+        res
+    }
+}
+```
+
+現在のwasmは複数の返り値をサポートしていないので、`ToOptionVal`は`HCons<T, H>`ではなく`HCons<T, HNil>`に実装しています。(これによって`()`や`(x,)`を返すことはできるが、`(x, y)`を返すとコンパイルエラーになる)。`from_vec_val`は解釈に失敗したらパニックになります。これは検証済みのwasmモジュールでは解釈に失敗することはないからという理由です。
+
+
+これらを使って`alloc_host`を実装すると以下のようになります。
+
+```rs
+pub fn alloc_host<P: Generic, R: Generic>(
+    f: impl Fn(P) -> Result<R, WasmError> + 'static,
+) -> FuncAddr
+where
+    P::Repr: ValTypeable + FromVecVal,
+    R::Repr: ValTypeable + ToOptionVal,
+{
+    let type_ = FuncType(P::Repr::to_valtype(), R::Repr::to_valtype());
+    FuncAddr(Rc::new(RefCell::new(FuncInst::HostFunc {
+        type_,
+        host_code: Rc::new(move |params| {
+            let p = P::Repr::from_vec_val(params);
+            let r = into_generic(f(from_generic(p))?);
+            Ok(r.to_option_val())
+        }),
+    })))
+}
+```
+
+`Generic`を実装した引数の型`P`と返り値の型`R`を受け取って(これらは普通タプル型になる)、`ValTypeable`制約によって関数の型を生成し、`FromVecVal`と`ToOptionVal`制約によって引数と返り値を解釈したり変換したりしています。
+
+各インスタンスやアドレスの定義はこれ以上解説しないので詳しく知りたい方はソースを読んでください。
+
+* [func](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/func.rs)
+* [global](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/global.rs)
+* [mem](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/mem.rs)
+* [table](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/table.rs)
 
 ランタイム構造を定義します。  
 スタックマシンとなっていますがなるべく仕様書通りに実装するためにスタックを以下のように定義しました。コメントに解説を書きました。
