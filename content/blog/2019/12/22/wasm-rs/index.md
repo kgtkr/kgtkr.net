@@ -53,6 +53,7 @@ valtype ::= i32 | i64 | f32 | f64
 ```
 
 これをRustのデータ構造にすると以下のようになります。
+
 ```rs
 pub enum ValType {
     I32,
@@ -101,6 +102,7 @@ where
         let (_, (x, _)) = tuple((Self::decode, eof()))(input)?;
         Ok(x)
     }
+}
 ```
 
 `decode`関数はバイト列を受け取って、未処理のバイト列と結果を返します。デコードは失敗する可能性があるので`nom`の`IResult`を使っています。  
@@ -446,7 +448,7 @@ pub trait PrimitiveVal: Sized {
 
 `i32`型などに実装するトレイトでスタックに入っているプリミティブ型であることを表します。
 
-次に`InterpretPrimitive`です。これは`PrimitiveVal`から解釈可能な型に実装するトレイトで、`PrimitiveVal`に加えて、`bool`、`u32`、`u64`に実装しています。
+次に`InterpretPrimitive`です。これは`PrimitiveVal`から解釈可能な型に実装するトレイトで、`PrimitiveVal`を実装している型に加えて、`bool`、`u32`、`u64`に実装しています。
 
 ```rs
 pub trait InterpretPrimitive {
@@ -457,7 +459,7 @@ pub trait InterpretPrimitive {
 }
 ```
 
-最後に`InterpretVal`で、`Val`から解釈可能な型に実装します。`InterpretPrimitive`に加えて`Val`自身も実装しています。
+最後に`InterpretVal`で、`Val`から解釈可能な型に実装します。`InterpretPrimitive`を実装している型に加えて`Val`自身も実装しています。
 
 ```rs
 pub trait InterpretVal: Sized {
@@ -467,7 +469,7 @@ pub trait InterpretVal: Sized {
 ```
 
 #### 各インスタンスとアドレスの定義
-メモリーやテーブルのインスタンスやアドレスを定義します。`FooInst`と`FooAddr`を定義していき、`FooAddr`は`Rc<RefCell<FooInst>>`のnewtypeになります。外部に公開するのは`FooAddr`だけで、所有権の競合でパニックにならないように気をつけてインターフェイスを作っていきます。
+メモリやテーブルのインスタンスやアドレスを定義します。`FooInst`と`FooAddr`を定義していき、`FooAddr`は`Rc<RefCell<FooInst>>`のnewtypeになります。外部に公開するのは`FooAddr`だけで、所有権の競合でパニックにならないように気をつけてインターフェイスを作っていきます。
 
 例えばメモリであれば以下のような構造体になります。
 
@@ -480,7 +482,7 @@ struct MemInst {
 pub struct MemAddr(Rc<RefCell<MemInst>>);
 ```
 
-関数は色々工夫しているので詳細に解説します。仕様書を読むと`funcinst`はwasmの関数とホスト関数があります。そしてwasmの関数は`moduleinst`を持っています。しかし`moduleinst`は`funcaddr`を持っており循環参照になってしまいます。循環参照になると`Rc`ではメモリリークしてしまうので`funcinst`が持つ`moduleinst`は`Weak`を使っています。
+`funcinst`の実装は色々工夫しているので詳細に解説します。仕様書を読むと`funcinst`はwasmの関数とホスト関数があります。そしてwasmの関数は`moduleinst`を持っています。しかし`moduleinst`は`funcaddr`を持っており循環参照になってしまいます。循環参照になると`Rc`ではメモリリークしてしまうので`funcinst`が持つ`moduleinst`は`Weak`で包んでいます。
 
 ```rs
 pub(super) enum FuncInst {
@@ -496,7 +498,7 @@ pub(super) enum FuncInst {
 }
 ```
 
-`Weak`を使うと`FuncAddr`を呼び出す時点で`ModuleInst`が長く生存していることをプログラマが保証する必要がありますが、今回はこれで妥協しました。もう少しいい方法がありそうなので改善したいです。
+`Weak`を使うと`FuncAddr`を呼び出す時点で`ModuleInst`が長く生存していることを利用する側が保証する必要がありますが、今回はこれで妥協しました。もう少しいい方法があれば改善したいです。
 
 次にホスト関数の`FuncAddr`を簡単に作るするための工夫です。例えば`i32`を出力する関数は何もしないと以下のように書く必要があります。
 
@@ -567,7 +569,7 @@ impl<H: ValTypeable, T: HList + ValTypeable> ValTypeable for HCons<H, T> {
 }
 ```
 
-これによって各要素が`InterpretPrimitive`を実装している`HList`全てで使えるようになりました。タプルは`Generic`を実装しているので、例えば`(i32, i64, bool)::Repr::to_valtype() == vec![ValType::I32, ValType::I64, ValType::I32]`です。(`T::Repr`は`HList`に変換した時の結果型)
+これによって各要素が`InterpretPrimitive`を実装している`HList`全てで使えるようになりました。タプルは`Generic`を実装しているので、例えば`(i32, i64, bool)::Repr::to_valtype() == vec![ValType::I32, ValType::I64, ValType::I32]`です。(`T::Repr`は`HList`や`Coproduct`に変換した時の結果型)
 
 同じような感じである型の値を`Option<Val>`に変換する`ToOptionVal`と、`Vec<Val>`からある型の値に変換する`FromVecVal`を定義します。
 `ToOptionVal`は返り値を`Option<Val>`に変換するのに、`FromVecVal`は引数の`Vec<Val>`から変換するのに使います。
@@ -613,7 +615,7 @@ where
 }
 ```
 
-`Generic`を実装した引数の型`P`と返り値の型`R`を受け取って(これらは普通タプル型になる)、`ValTypeable`制約によって関数の型を生成し、`FromVecVal`と`ToOptionVal`制約によって引数と返り値を解釈したり変換したりしています。
+`Generic`を実装した引数の型`P`と返り値の型`R`を受け取って(これらは普通タプル型になる)、`Generic::Repr`の`ValTypeable`制約によって関数の型を生成し、`FromVecVal`や`ToOptionVal`制約によって引数と返り値を解釈したり変換したりしています。
 
 他の各インスタンスやアドレスの定義は詳しく解説しないので知りたい方はソースを読んでください。
 
@@ -653,7 +655,7 @@ pub struct Frame {
 }
 ```
 
-`n`は結果の値の数です。現在のwasmでは0か1になります。`Label`の`instrs`は継続です。ラベルの継続は前書いた[WebAssemblyのbr命令について](https://qiita.com/kgtkr/items/2c39bb2cbbbfd0e0e14b)という記事を読んでください。簡単に言うと`br`した時に本体を抜けて実行される命令です。
+`n`は結果の値の数です。現在のwasmでは0か1になります。`Label`の`instrs`は継続です。ラベルの継続については前書いた[WebAssemblyのbr命令について](https://qiita.com/kgtkr/items/2c39bb2cbbbfd0e0e14b)という記事を読んでください。簡単に言うと`br`した時にラベルの本体を抜けて実行される命令です。
 
 `Val`と`Frame`と`Label`は任意の順序で積まれる可能性があると書いてありますが、実際はある程度順序が決まっているので最低限計算量を抑えることとなるべく単純な実装にするために今回は以下のようなネストしたスタックを使いました。
 
@@ -735,9 +737,9 @@ impl<H: StackValues, T: HList + StackValues> StackValues for HCons<H, T> {
 }
 ```
 
-`HCons<H, T>`の`pop_stack`は`tail`→`head`の順でpopしていることに注意してください。これは`(a, b)`をスタックにpushすると`a`→`b`の順でスタックに積まれ、スタックの上に`b`が来るので復元は`b`からになることから分かると思います。  
+`HCons<H, T>`の`pop_stack`は`tail`→`head`の順でpopしていることに注意してください。これは`(a, b)`をスタックにpushすると`a`→`b`の順でスタックに積まれ、スタックの上に`b`が来るのでpopは`b`からになることから分かると思います。  
 次に`LabelStack`の関連関数に`StackValues`トレイトを活用した便利関数を定義していきます。  
-まず`pop_values`と`push_values`です。これは型引数に`(i32, i32)`などを受け取ってpushしたりpopしたりする関数です。
+まず`pop_values`と`push_values`です。これは型引数に`(i32, i32)`などの`Generic`を実装していて、`Generic::Repr`が`StackValues`を実装している型の値を受け取ってpushしたりpopしたりする関数です。
 
 ```rs
 fn pop_values<T>(&mut self) -> T
@@ -757,7 +759,7 @@ where
 }
 ```
 
-次に`FnOnce((i32,i32)) -> Result<(i64,), WasmError>`などを受け取ってスタックから値をpopして関数を呼び出し結果をpushする`run`と、結果が`Result`でない(失敗しない)`run_ok`関数です。
+次に`FnOnce((i32,i32)) -> Result<(i64,), WasmError>`などのコールバックを受け取ってスタックから値をpopして関数を呼び出し結果をpushする`run`と、`run`の結果が`Result`でない(=失敗しない)版の`run_ok`関数です。
 
 ```rs
 fn run<I, O>(&mut self, f: impl FnOnce(I) -> Result<O, WasmError>) -> Result<(), WasmError>
@@ -784,7 +786,7 @@ where
 }
 ```
 
-最後にこれらをラップした関数を定義していきます。数値命令は`const`、`unop`、`binop`、`testop`、`reop`、`cvtop`に分けることができるのでこれらに特化した関数です。以下のようになります。
+最後にこれらをラップした関数を定義していきます。数値命令は`const`、`unop`、`binop`、`testop`、`reop`、`cvtop`というグループに分けることができるのでこれらに特化した関数です。以下のようになります。
 
 ```rs
 fn run_const<T: InterpretVal>(&mut self, f: impl FnOnce() -> T) {
@@ -913,7 +915,7 @@ pub enum ModuleLevelInstr {
 * [FrameStack::step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L96)
 * [Stack::step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L1108)
 
-まずかなり単純な`i32.const`命令です。
+まずは単純な`i32.const`命令です。
 
 ```rs
 // LabelStack::step
@@ -922,7 +924,7 @@ Instr::I32Const(x) => {
 }
 ```
 
-これはそのままですね。
+これは`i32.const x`の`x`の値が結果になります。
 
 次に`i32.add`です。
 
@@ -962,21 +964,7 @@ Instr::GlobalSet(idx) => {
 }
 ```
 
-これは現在のフレームから現在のモジュールインスタンスを取得して(モジュールインスタンスは`Weak`で持っているので`upgrade`している)、グローバ変数を書き換えています。
-
-```rs
-// LabelStack::step
-Instr::If(rt, is1, is2) => {
-    let (x,) = self.pop_values::<(bool,)>();
-    self.instrs.push(AdminInstr::Label(
-        Label {
-            instrs: vec![],
-            n: rt.0.iter().count(),
-        },
-        if x { is1 } else { is2 },
-    ));
-}
-```
+これは現在のフレームから現在のモジュールインスタンスを取得して(モジュールインスタンスは`Weak`で持っているので`upgrade`している)、グローバル変数を書き換えています。
 
 次にメモリ命令として`f32.store`を見てみましょう。
 
@@ -991,7 +979,7 @@ Instr::F32Store(m) => {
 }                  
 ```
 
-`MemAddr`に`write`という`Byteable`を実装している型をメモリに書き込める関数を作っているので活用しています。
+`MemAddr`に`write`という`Byteable`を実装している型をメモリに書き込める`write`関数を定義しているのでそれを使っています。
 
 制御命令も見てみましょう。例えば`if`です。仕様は大体以下のようになっています。
 
@@ -1065,7 +1053,7 @@ ModuleLevelInstr::Return => {
 }
 ```
 
-現在のラベルのスタックの一番上の値をpopして`ret`に一時的に格納しておきます(返り値が複数になることはないので`0`個または`1`個である`Option<Val>`で十分です)。  
+現在のラベルのスタックの一番上の値をpopして`ret`に一時的に格納しておきます(返り値が複数になることはないので`0`個または`1`個である`Option<Val>`になっています)。  
 そして現在の`FrameStack`のスタックの一番上の値をpopしてその`frame`の結果の数`n`を調べてそれが`0`でなければ、返り先の`frame`の最後の`label`のスタックにさっき格納しておいた`ret`をpushしています。
 
 #### 関数の呼び出し
@@ -1195,7 +1183,7 @@ if let Some(table) = module.tables.iter().next() {
 // 省略
 ```
 
-これは`ModuleInst`と`FuncInst`は循環参照しており、現状では渡すことが出来ないからです。ダミーの値を置いているのはこれをしないと以下のexportする値を作れないといった理由があります。
+これは`ModuleInst`と`FuncInst`は循環参照しており、この段階では渡すことが出来ないからです。ダミーの値を置いているのはこれをしないと以下のexportする値を作れないといった理由があります。
 
 ```rs
 for export in &module.exports {
@@ -1244,7 +1232,7 @@ if let Some(start) = &module.start {
 Ok(result)
 ```
 
-その他のインスタンス化処理や、`data`や`elem`による`mem`や`table`の初期化は特に複雑な事をしていないので解説は省略します。
+その他のインスタンス化処理や、`data`や`elem`による`mem`や`table`の初期化は特に特殊な事をしていないので解説は省略します。
 
 
 ## 公式のテストケース
@@ -1295,7 +1283,7 @@ pub fn alloc(size: usize) -> *mut c_void {
 fn main() {}
 ```
 
-wasmは整数やポインタ型でしかやり取りできないので、これを使う側は`alloc`で文字列を`CString`に変換したバイト列の長さ分メモリを確保→確保したメモリをバイト列で埋める→`md5`に確保したメモリのポインタを渡す→結果がポインタで返ってくるのでポインタを`CString`に変換するという処理を行う必要があります。  
+Rustからwasmに公開する関数は整数やポインタ型でしかやり取りできないので、これを使う側は`alloc`で文字列を`CString`に変換したバイト列の長さ分メモリを確保→確保したメモリをバイト列で埋める→`md5`に確保したメモリのポインタを渡す→結果がポインタで返ってくるのでポインタを`CString`に変換するという処理を行う必要があります。  
 これをする処理が以下です。`md5-bin.wasm`が上記のコンパイル結果です。
 
 ```rs
@@ -1397,7 +1385,7 @@ fun forEach(f: (i32) =>, n: i32, arr: [i32]) = {
 ```
 
 `cl8w-ex.wasm`は自作言語のコンパイル結果、`memory.wasm`は自作言語の実行に必要なランタイムとなっています。  
-モジュールのインスタンス化には各モジュールが`import`している値を用意し渡す必要があります。  
+モジュールのインスタンス化には各モジュールがimportしている値を用意し渡す必要があります。  
 
 
 ```rs
@@ -1464,7 +1452,7 @@ fn main(){
 ```
 
 ## 自作インタプリタ上で自作インタプリタを動かす
-Rustはwasmにコンパイルすることができるので自作インタプリタ上で自作言語を動かすコードをwasmにコンパイルし、それを自作インタプリタで動かしてみました。つまり自作言語(wasm) on 自作インタプリタ(wasm) on 自作インタプリタです。
+Rustはwasmにコンパイルすることができるので自作インタプリタ上で自作言語を動かすコードをwasmにコンパイルし、それを自作インタプリタで動かしてみました。つまり自作言語(wasm) on 自作インタプリタ(wasm) on 自作インタプリタ(ホストマシン)です。
 自作言語のコードはさっきと同じです。
 
 wasmにコンパイルするRustコードは以下です。さっきとほぼ同じですが、`print`を`extern`していたり、`run`関数を`extern`しているところが違います。
@@ -1591,4 +1579,4 @@ sys     0m0.080s
 
 ## これからやりたいこと
 まずは検証フェーズと、watのパーサーを作って全ての公式テストケースを通るようにしたいです。
-`ModuleInst`に`Weak`を使いまくってるのも綺麗じゃないので改善したいと思っています。
+`ModuleInst`に`Weak`を使いまくってるのも綺麗じゃないのでそれも改善したいと思っています。
