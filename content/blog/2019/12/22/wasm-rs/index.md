@@ -1264,12 +1264,102 @@ https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/tests/spec.rs
 
 出力したjsonをいい感じにパースして書いてあるとおりに実行すればテストできるのでかなり楽です。気をつける事があるとすればjsonの`value`は`i32/i64/f32/f64`に関係なく全て符号なし整数の文字列なのでそれをパースして、リトルエンディアンでバイト列に変換して、バイト列から対象の型に変換する必要があるくらいです。
 
+## md5を計算するRustコードを自作インタプリタ上で動かす
+md5を計算するRustコードをwasmにコンパイルして自作インタプリタ上で動かしてみました。
+wasmにコンパイルするRustコードは以下です。
+
+```rs
+use std::ffi::{c_void, CString};
+use std::mem::forget;
+
+#[no_mangle]
+pub extern "C" fn md5(input: *mut i8) -> *const i8 {
+    let s = CString::new(format!(
+        "{:x}",
+        md5::compute(unsafe { CString::from_raw(input) }.into_bytes())
+    ))
+    .unwrap();
+    let p = s.as_ptr();
+    forget(s);
+    p
+}
+
+#[no_mangle]
+pub fn alloc(size: usize) -> *mut c_void {
+    let mut buf = Vec::with_capacity(size);
+    let p = buf.as_mut_ptr();
+    forget(buf);
+    p
+}
+
+fn main() {}
+```
+
+wasmは整数やポインタ型でしかやり取りできないので、これを使う側は`alloc`で文字列を`CString`に変換したバイト列の長さ分メモリを確保→確保したメモリをバイト列で埋める→`md5`に確保したメモリのポインタを渡す→結果がポインタで返ってくるのでポインタを`CString`に変換するという処理を行う必要があります。  
+これをする処理が以下です。`md5-bin.wasm`が上記のコンパイル結果です。
+
+```rs
+use maplit::hashmap;
+use std::ffi::CString;
+use wasm_rs::binary::decode_module;
+use wasm_rs::exec::{ModuleInst, Val};
+
+fn main() {
+    let module = decode_module(
+        &std::fs::read("md5-bin/target/wasm32-unknown-unknown/release/md5-bin.wasm").unwrap(),
+    )
+    .unwrap();
+    let instance = ModuleInst::new(&module, hashmap! {}).unwrap();
+
+    let input_bytes = CString::new("abc").unwrap().into_bytes();
+    let input_ptr = instance
+        .export("alloc")
+        .unwrap_func()
+        .call(vec![Val::I32(input_bytes.len() as i32)])
+        .unwrap()
+        .unwrap()
+        .unwrap_i32();
+
+    instance
+        .export("memory")
+        .unwrap_mem()
+        .write_buffer(input_ptr, &input_bytes[..]);
+
+    let output_ptr = instance
+        .export("md5")
+        .unwrap_func()
+        .call(vec![Val::I32(input_ptr as i32)])
+        .unwrap()
+        .unwrap()
+        .unwrap_i32() as usize;
+
+    let mem = instance.export("memory").unwrap_mem();
+    println!(
+        "{}",
+        CString::new(
+            mem.into_iter()
+                .skip(output_ptr)
+                .take_while(|x| *x != 0)
+                .collect::<Vec<_>>(),
+        )
+        .unwrap()
+        .into_string()
+        .unwrap()
+    );
+}
+```
+
+これを実行すると以下のように表示され、`"abc"`のmd5を計算できていることが分かります。
+
+```
+900150983cd24fb0d6963f7d28e17f72
+```
+
 ## 自作言語を自作インタプリタで動かす
 一年前にHaskellでwasmにコンパイルする自作言語を作ったので([WebAssemblyにコンパイルする言語を実装する
 ](https://qiita.com/kgtkr/items/de4c616cdcd89a58df72))、それを実行してみたところ上手く動かすことができました。
 
-### 自作言語のコード
-配列を10個用意して、インデックスの値で初期化、各要素をインクリメント、二倍、デクリメントして出力するコードです。  
+以下は配列を10個用意して、インデックスの値で初期化、各要素をインクリメント、二倍、デクリメントして出力する自作言語のコードです。  
 
 ```
 extern fun "memory" "malloc" malloc(x: i32): i32
@@ -1306,56 +1396,60 @@ fun forEach(f: (i32) =>, n: i32, arr: [i32]) = {
 }
 ```
 
-### rustコード
-`cl8w.wasm`は自作言語のコンパイル結果、`memory.wasm`は自作言語の実行に必要なランタイムとなっています。  
-バイト列であるファイルを読み込んでパース、インスタンス化して関数を呼び出しています。モジュールのインスタンス化には各モジュールが`import`している値を用意し渡す必要があります。  
+`cl8w-ex.wasm`は自作言語のコンパイル結果、`memory.wasm`は自作言語の実行に必要なランタイムとなっています。  
+モジュールのインスタンス化には各モジュールが`import`している値を用意し渡す必要があります。  
 
 
 ```rs
-let memory = ExternalVal::Mem(MemAddr(Rc::new(RefCell::new(MemInst::from_min_max(
-    10, None,
-)))));
-let print = ExternalVal::Func(FuncAddr(Rc::new(RefCell::new(FuncInst::HostFunc {
-    type_: FuncType(vec![ValType::I32], vec![]),
-    host_code: |params| match &params[..] {
-        &[Val::I32(x)] => {
-            println!("{}", x);
-            None
-        }
-        _ => panic!(),
-    },
-}))));
+use wasm_rs::binary::decode_module;
+use wasm_rs::exec::{ModuleInst, ExternalVal, FuncAddr, MemAddr};
+use maplit::hashmap;
 
-let memory_module =
-    Module::decode_end(&std::fs::read("./example/memory.wasm").unwrap()).unwrap();
-let memory_instance = ModuleInst::new(
-    &memory_module,
-    map!(
-        "resource".to_string() => map!(
-            "memory".to_string() => memory.clone()
-        )
-    ),
-);
+fn main(){
+    let memory = ExternalVal::Mem(MemAddr::new(10, None));
+    let print = ExternalVal::Func(FuncAddr::alloc_host(|(x,): (i32,)| {
+        println!("{}", x);
+        Ok(())
+    }));
 
-let main_module =
-    Module::decode_end(&std::fs::read("./example/cl8w.wasm").unwrap()).unwrap();
-let main_instance = ModuleInst::new(
-    &main_module,
-    map!(
-        "resource".to_string() => map!(
-            "memory".to_string() => memory.clone()
-        ),
-        "memory".to_string() => memory_instance.exports(),
-        "io".to_string() => map!(
-            "print".to_string() => print.clone()
-        )
-    ),
-);
+    let memory_module =
+        decode_module(&std::fs::read("cl8w-wasm/memory.wasm").unwrap()).unwrap();
+    let memory_instance = ModuleInst::new(
+        &memory_module,
+        hashmap! {
+            "resource".to_string() => hashmap!{
+                "memory".to_string() => memory.clone()
+            }
+        },
+    )
+    .unwrap();
 
-main_instance.export("main").unwrap_func().call(vec![]);
+    let main_module =
+        decode_module(&std::fs::read("cl8w-wasm/cl8w-ex.wasm").unwrap()).unwrap();
+    let main_instance = ModuleInst::new(
+        &main_module,
+        hashmap! {
+            "resource".to_string() => hashmap!{
+                "memory".to_string() => memory.clone()
+            },
+            "memory".to_string() => memory_instance.exports(),
+            "io".to_string() => hashmap!{
+                "print".to_string() => print.clone()
+            }
+        },
+    )
+    .unwrap();
+
+    main_instance
+        .export("main")
+        .unwrap_func()
+        .call(vec![])
+        .unwrap();
+}
 ```
 
-### 実行結果
+これを実行するとこのように表示されます。
+
 ```
 1
 3
@@ -1371,13 +1465,15 @@ main_instance.export("main").unwrap_func().call(vec![]);
 
 ## 自作インタプリタ上で自作インタプリタを動かす
 Rustはwasmにコンパイルすることができるので自作インタプリタ上で自作言語を動かすコードをwasmにコンパイルし、それを自作インタプリタで動かしてみました。つまり自作言語(wasm) on 自作インタプリタ(wasm) on 自作インタプリタです。
+自作言語のコードはさっきと同じです。
 
-### 自作言語のコード
-さっきと同じなので省略
-
-### wasmにコンパイルするRustコード
+wasmにコンパイルするRustコードは以下です。さっきとほぼ同じですが、`print`を`extern`していたり、`run`関数を`extern`しているところが違います。
 
 ```rs
+use maplit::hashmap;
+use wasm_rs::binary::decode_module;
+use wasm_rs::exec::{ExternalVal, FuncAddr, MemAddr, ModuleInst};
+
 fn main() {}
 
 extern "C" {
@@ -1386,89 +1482,85 @@ extern "C" {
 
 #[no_mangle]
 pub extern "C" fn run() {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-    use wasm_rs::binary::Decoder;
-    use wasm_rs::exec::instance::*;
-    use wasm_rs::structure::modules::*;
-    use wasm_rs::structure::types::*;
+    let memory = ExternalVal::Mem(MemAddr::new(10, None));
+    let print = ExternalVal::Func(FuncAddr::alloc_host(|(x,): (i32,)| {
+        unsafe {
+            print(x);
+        }
+        Ok(())
+    }));
 
-    let memory = ExternalVal::Mem(MemAddr(Rc::new(RefCell::new(MemInst::from_min_max(
-        10, None,
-    )))));
-    let print = ExternalVal::Func(FuncAddr(Rc::new(RefCell::new(FuncInst::HostFunc {
-        type_: FuncType(vec![ValType::I32], vec![]),
-        host_code: |params| match &params[..] {
-            &[Val::I32(x)] => {
-                unsafe {
-                    print(x);
-                }
-                None
-            }
-            _ => panic!(),
-        },
-    }))));
-
-    let memory_module = Module::decode_end(include_bytes!("../example/memory.wasm")).unwrap();
+    let memory_module = decode_module(include_bytes!("../../cl8w-wasm/memory.wasm")).unwrap();
     let memory_instance = ModuleInst::new(
         &memory_module,
-        map!(
-            "resource".to_string() => map!(
+        hashmap!(
+            "resource".to_string() => hashmap!(
                 "memory".to_string() => memory.clone()
             )
         ),
-    );
+    )
+    .unwrap();
 
-    let main_module = Module::decode_end(include_bytes!("../example/cl8w.wasm")).unwrap();
+    let main_module = decode_module(include_bytes!("../../cl8w-wasm/cl8w-ex.wasm")).unwrap();
     let main_instance = ModuleInst::new(
         &main_module,
-        map!(
-            "resource".to_string() => map!(
+        hashmap!(
+            "resource".to_string() => hashmap!(
                 "memory".to_string() => memory.clone()
             ),
             "memory".to_string() => memory_instance.exports(),
-            "io".to_string() => map!(
+            "io".to_string() => hashmap!(
                 "print".to_string() => print.clone()
             )
         ),
-    );
+    )
+    .unwrap();
 
-    main_instance.export("main").unwrap_func().call(vec![]);
+    main_instance
+        .export("main")
+        .unwrap_func()
+        .call(vec![])
+        .unwrap();
 }
+
 ```
 
-### wasmにコンパイルしたRustを読み込んで実行するコード
-`output.wasm`は自作インタプリタ上で自作言語を動かすRustコードを`wasm32-unknown-unknown`にコンパイルしたもの
+上記Rustコードをwasmにコンパイルして動かすコードは以下のようになります。`cl8w-on-wasm-bin.wasm`は上記Rustコードのコンパイル結果です。
 
 ```rs
-let print = ExternalVal::Func(FuncAddr(Rc::new(RefCell::new(FuncInst::HostFunc {
-    type_: FuncType(vec![ValType::I32], vec![]),
-    host_code: |params| match &params[..] {
-        &[Val::I32(x)] => {
-            println!("{}", x);
-            None
-        }
-        _ => panic!(),
-    },
-}))));
+use maplit::hashmap;
+use wasm_rs::binary::decode_module;
+use wasm_rs::exec::{ExternalVal, FuncAddr, ModuleInst};
+fn main() {
+    let print = ExternalVal::Func(FuncAddr::alloc_host(|(x,): (i32,)| {
+        println!("{}", x);
+        Ok(())
+    }));
 
-let module =
-    Module::decode_end(&std::fs::read("./example/output.wasm").unwrap())
-        .unwrap();
-let instance = ModuleInst::new(
-    &module,
-    map!(
-        "env".to_string() => map!(
-            "print".to_string() => print
+    let module = decode_module(
+        &std::fs::read(
+            "cl8w-on-wasm-bin/target/wasm32-unknown-unknown/release/cl8w-on-wasm-bin.wasm",
         )
-    ),
-);
+        .unwrap(),
+    )
+    .unwrap();
+    let instance = ModuleInst::new(
+        &module,
+        hashmap! {
+            "env".to_string() => hashmap!{
+                "print".to_string() => print
+            }
+        },
+    )
+    .unwrap();
 
-instance.export("run").unwrap_func().call(vec![]);
+    instance.export("run").unwrap_func().call(vec![]).unwrap();
+}
+
 ```
 
-### 実行結果
-手元環境で実行時間の計測もしてみました。どちらのRustコードもreleaseビルドです。
+これを実行すると以下のようになります。
+手元環境(MBP2018 2.5GHz i7)でtimeコマンドを使って実行時間の計測もしてみました。どちらのRustコードもreleaseビルドです。
 
 ```
 1
@@ -1482,22 +1574,21 @@ instance.export("run").unwrap_func().call(vec![]);
 17
 19
 
-
-real    1m25.723s
-user    1m18.621s
-sys     0m1.318s
+real    1m48.488s
+user    1m41.136s
+sys     0m1.177s
 ```
 
-遅すぎますね。遅いwasmインタプリタの上で遅いwasmインタプリタを動かしてその上で遅い自作言語(どちらかというと自作メモリアロケーターが遅いが)を動かしているのでめちゃくちゃ遅いのは当然です。パフォーマンス無視で実装したとはいえ流石に遅すぎるので改善したいです。
+遅すぎますね。遅いwasmインタプリタの上で遅いwasmインタプリタを動かしてその上で遅い自作言語(どちらかというと自作メモリアロケーターが遅い)を動かしているのでめちゃくちゃ遅いのは当然です。パフォーマンス無視で実装したとはいえ流石に遅すぎるので改善したいです。
 
-ちなみに`output.wasm`をnode.js上で実行すると実行時間は以下のようになりました。
+ちなみに`cl8w-on-wasm-bin.wasm`をnode.js上で実行すると実行時間は以下のようになりました。かなり差ありますね。
 
 ```
-real    0m0.294s
-user    0m0.724s
-sys     0m0.068s
+real    0m0.376s
+user    0m0.869s
+sys     0m0.080s
 ```
 
-## これからやること
-まだ小数命令の一部と検証フェーズの実装が出来ていないのでそれの実装をしてしまいたいです。  
-これを実装できれば公式のテストケースが全て通るはずなのでそこまで出来たら多少のパフォーマンス改善や、そのうちwasmに入るはずの複数の返り値等の実装もしてみようと思っています。
+## これからやりたいこと
+まずは検証フェーズと、watのパーサーを作って全ての公式テストケースを通るようにしたいです。
+`ModuleInst`に`Weak`を使いまくってるのも綺麗じゃないので改善したいと思っています。
