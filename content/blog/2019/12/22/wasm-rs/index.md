@@ -610,7 +610,7 @@ where
 
 `Generic`を実装した引数の型`P`と返り値の型`R`を受け取って(これらは普通タプル型になる)、`ValTypeable`制約によって関数の型を生成し、`FromVecVal`と`ToOptionVal`制約によって引数と返り値を解釈したり変換したりしています。
 
-各インスタンスやアドレスの定義はこれ以上解説しないので詳しく知りたい方はソースを読んでください。
+他の各インスタンスやアドレスの定義は詳しく解説しないので知りたい方はソースを読んでください。
 
 * [func](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/func.rs)
 * [global](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/global.rs)
@@ -620,37 +620,51 @@ where
 ランタイム構造を定義します。  
 スタックマシンとなっていますがなるべく仕様書通りに実装するためにスタックを以下のように定義しました。コメントに解説を書きました。
 
+#### スタックの値の定義
+仕様書を読むとスタックには`Val`の他に関数の呼び出しラベルとフレームが含まれることが分かります。ラベルは制御構文に入ると積まれる値です。
+
+まず`Label`と`Frame`を定義します。
+
 ```rs
-pub struct Stack {
-    // 関数の呼び出しスタック
-    // 関数が呼び出されるとpushされ、関数から戻るとpopされる
-    pub stack: Vec<FrameStack>,
+pub struct Label {
+    pub instrs: Vec<Instr>,
+    pub n: usize,
 }
 
-
-pub struct FrameStack {
-    // ローカル変数情報などが入っている
-    pub frame: Frame,
-    // 制御構文に入るとpushされ、抜けるとpopされる
-    pub stack: Vec<LabelStack>,
-}
-
-pub struct LabelStack {
-    // Label(後記)に関するデータ
-    pub label: Label,
-    // 未実行命令のスタック
-    // AdminInstrについては後記
-    pub instrs: Vec<AdminInstr>,
-    // 一般的なスタックマシンのスタックに対応
-    // 計算結果などはここにpushされる
-    // Valはi32/i64/f32/f64
-    pub stack: Vec<Val>,
+pub struct Frame {
+    pub module: Weak<ModuleInst>,
+    pub locals: Vec<Val>,
+    pub n: usize,
 }
 ```
 
-`Label`というのは命令の継続を持っています。これは制御構文に入ると作られる継続付きブロックのようなものです。通常は本体の命令が実行され、最後まで実行するとその`label`を抜けます。しかし`br`命令で`label`を指定すると現在の命令が中断され、その`label`継続にジャンプし継続が実行されます。前書いた[WebAssemblyのbr命令について
-](https://qiita.com/kgtkr/items/2c39bb2cbbbfd0e0e14b)という記事を読むと分かるかもしれません。  
-`AdminInstr`というのは仕様書の`Administrative Instructions`に対応しています。これは`Structure`に出てくる`instr`の拡張で実行仕様を書くためにいくつかの命令が加えられています。今回は以下のように定義しました。  
+`n`は結果の値の数です。現在のwasmでは0か1になります。`Label`の`instrs`は継続です。ラベルの継続は前書いた[WebAssemblyのbr命令について](https://qiita.com/kgtkr/items/2c39bb2cbbbfd0e0e14b)という記事を読んでください。簡単に言うと`br`した時に本体を抜けて実行される命令です。
+
+`Val`と`Frame`と`Label`は任意の順序で積まれる可能性があると書いてありますが、実際はある程度順序が決まっているので最低限計算量を抑えることとなるべく単純な実装にするために今回は以下のようなネストしたスタックを使いました。
+
+```rs
+pub struct LabelStack {
+    pub label: Label,
+    // 後ろから実行
+    pub instrs: Vec<AdminInstr>,
+    pub stack: Vec<Val>,
+}
+
+pub struct FrameStack {
+    pub frame: Frame,
+    // not empty
+    // stack[0]の継続は空
+    pub stack: Vec<LabelStack>,
+}
+
+pub struct Stack {
+    // not empty
+    pub stack: Vec<FrameStack>,
+}
+```
+
+ルートのスタックである`Stack`は`Frame`を持つ`FrameStack`のスタックを持っています。そして`FrameStack`は`Label`を持つ`LabelStack`のスタックを持っています。`Label`スタックは`Val`のスタックと未処理の命令列である`AdminInstr`のスタックを持っています。  
+`AdminInstr`というのは仕様書の`Administrative Instructions`に手を加えた物です。`Instr`にいくつかの命令を追加しています。
 
 ```rs
 pub enum AdminInstr {
@@ -662,68 +676,433 @@ pub enum AdminInstr {
 }
 ```
 
-`Stack`、`FrameStack`、`LabelStack`は評価を1ステップ進める`step`関数を持っており、`Stack::step`を呼び出すと、`FrameStack::step`を呼び出し、`FrameStack::step`を呼び出すと`LabelStack::step`を呼び出すようになっています。  
-そして、`FrameStack::step`は`Option<ModuleLevelInstr>`を、`LabelStack::step`は`Option<FrameLevelInstr>`を返すようになっています。`ModuleLevelInstr`は個々の`FrameStack`だけでは完結しない命令を表す`enum`で、`FrameLevelInstr`は個々の`LabelStack`だけでは完結しない命令を表す`enum`です。これらを返す事で親に実行できなかった処理を委譲することができます(これらが返された親は自信で処理を実行するか、さらに親に命令を返さなければいけません)
-`FrameStack::step`の疑似コードを書くと以下のような感じです。  
+#### スタックを簡単に扱う
+スタックから簡単に値をpopしたりpushしたりするためのトレイトと便利関数を見てみましょう。
+まず`StackValues`トレイトです。
 
 ```rs
-let frame_instr = current_label_stack.step(...);
-if let Some(frame_instr) = frame_instr {
-    match frame_instr {
-        /* frameで完結する処理 */ => {
-            …
-            None
-        }
-        /* frameでは完結しない処理 */ => {
-            …
-            Some(ModuleLevelInstr::...)
-        }
+pub trait StackValues: Sized {
+    fn pop_stack(stack: &mut Vec<Val>) -> Option<Self>;
+    fn push_stack(self, stack: &mut Vec<Val>);
+}
+```
+
+これはスタックにpushとpopできる値を表します。これを各要素が`InterpretVal`を実装している`HList`に実装することで一般的に使えるようにしています。
+
+```rs
+impl<T: InterpretVal> StackValues for T {
+    fn pop_stack(stack: &mut Vec<Val>) -> Option<Self> {
+        let val = stack.pop()?;
+        T::try_interpret_val(val)
+    }
+    fn push_stack(self, stack: &mut Vec<Val>) {
+        stack.push(self.to_val());
+    }
+}
+
+impl StackValues for HNil {
+    fn pop_stack(_: &mut Vec<Val>) -> Option<Self> {
+        Some(HNil)
+    }
+    fn push_stack(self, _: &mut Vec<Val>) {}
+}
+
+impl<H: StackValues, T: HList + StackValues> StackValues for HCons<H, T> {
+    fn pop_stack(stack: &mut Vec<Val>) -> Option<Self> {
+        let tail = T::pop_stack(stack)?;
+        let head = H::pop_stack(stack)?;
+        Some(tail.prepend(head))
+    }
+    fn push_stack(self, stack: &mut Vec<Val>) {
+        self.head.push_stack(stack);
+        self.tail.push_stack(stack);
     }
 }
 ```
 
-例えば`ModuleLevelInstr`には`Return`などが、`FrameLevelInstr`には`ModuleLevelInstr`に加えて`Br`などが含まれています。これは例えば`Return`は個々の`FrameStack`だけでは完結せず、`FrameStack`のスタックを操作する必要があり、`Br`も`LabelStack`だけでは完結せず、個々の`LabelStack`だけでは完結せず`LabelStack`のスタックを操作する必要があるからです。
-
-例としていくつかの命令評価をあげます。
-まず`LabelStack::step`の`i32.add`の評価です。
+`HCons<H, T>`の`pop_stack`は`tail`→`head`の順でpopしていることに注意してください。これは`(a, b)`をスタックにpushすると`a`→`b`の順でスタックに積まれ、スタックの上に`b`が来るので復元は`b`からになることから分かると思います。  
+次に`LabelStack`の関連関数に`StackValues`トレイトを活用した便利関数を定義していきます。  
+まず`pop_values`と`push_values`です。これは型引数に`(i32, i32)`などを受け取ってpushしたりpopしたりする関数です。
 
 ```rs
-match ... {
-    ︙
-        Instr::I32Add => {
-            let y = self.stack.pop().unwrap().unwrap_i32();
-            let x = self.stack.pop().unwrap().unwrap_i32();
-            self.stack.push(Val::I32(x.overflowing_add(y).0));
-        }
-    ︙
+fn pop_values<T>(&mut self) -> T
+where
+    T: Generic,
+    T::Repr: StackValues,
+{
+    from_generic(T::Repr::pop_stack(&mut self.stack).unwrap())
+}
+
+fn push_values<T>(&mut self, x: T)
+where
+    T: Generic,
+    T::Repr: StackValues,
+{
+    into_generic(x).push_stack(&mut self.stack)
 }
 ```
 
-これはスタックから2つの`i32`値をpopして足した値をスタックにpushしています。オーバーフローに対応するために`+`ではなく`overflowing_add`を使っています。
-
-次に`Stack::step`の`return`を見てみましょう。
+次に`FnOnce((i32,i32)) -> Result<(i64,), WasmError>`などを受け取ってスタックから値をpopして関数を呼び出し結果をpushする`run`と、結果が`Result`でない(失敗しない)`run_ok`関数です。
 
 ```rs
-match ... {
-    ︙
-    ModuleLevelInstr::Return => {
-        let ret = cur_label.stack.pop();
-        if self.stack.pop().unwrap().frame.n != 0 {
-            self.stack
-                .last_mut()
-                .unwrap()
-                .stack
-                .last_mut()
-                .unwrap()
-                .stack
-                .push(ret.unwrap());
+fn run<I, O>(&mut self, f: impl FnOnce(I) -> Result<O, WasmError>) -> Result<(), WasmError>
+where
+    I: Generic,
+    I::Repr: StackValues,
+    O: Generic,
+    O::Repr: StackValues,
+{
+    let input = self.pop_values::<I>();
+    let output = f(input)?;
+    self.push_values(output);
+    Ok(())
+}
+
+fn run_ok<I, O>(&mut self, f: impl FnOnce(I) -> O) -> ()
+where
+    I: Generic,
+    I::Repr: StackValues,
+    O: Generic,
+    O::Repr: StackValues,
+{
+    self.run(|i| Ok(f(i))).unwrap();
+}
+```
+
+最後にこれらをラップした関数を定義していきます。数値命令は`const`、`unop`、`binop`、`testop`、`reop`、`cvtop`に分けることができるのでこれらに特化した関数です。以下のようになります。
+
+```rs
+fn run_const<T: InterpretVal>(&mut self, f: impl FnOnce() -> T) {
+    self.run_ok(|(): ()| -> (T,) { (f(),) })
+}
+
+fn run_unop<T: InterpretVal>(
+    &mut self,
+    f: impl FnOnce(T) -> Result<T, WasmError>,
+) -> Result<(), WasmError> {
+    self.run(|(x,): (T,)| -> Result<(T,), _> { Ok((f(x)?,)) })
+}
+
+fn run_binop<T: InterpretVal>(
+    &mut self,
+    f: impl FnOnce(T, T) -> Result<T, WasmError>,
+) -> Result<(), WasmError> {
+    self.run(|(a, b): (T, T)| -> Result<(T,), _> { Ok((f(a, b)?,)) })
+}
+
+fn run_testop<T: InterpretVal>(&mut self, f: impl FnOnce(T) -> bool) {
+    self.run_ok(|(x,): (T,)| -> (bool,) { (f(x),) })
+}
+
+fn run_reop<T: InterpretVal>(&mut self, f: impl FnOnce(T, T) -> bool) {
+    self.run_ok(|(x, y): (T, T)| -> (bool,) { (f(x, y),) })
+}
+
+fn run_cvtop<T: InterpretVal, R: InterpretVal>(
+    &mut self,
+    f: impl FnOnce(T) -> Result<R, WasmError>,
+) -> Result<(), WasmError> {
+    self.run(|(x,): (T,)| -> Result<(R,), _> { Ok((f(x)?,)) })
+}
+```
+
+失敗するかもしれない命令グループと必ず成功する命令グループがあるので`run`と`run_ok`を使い分けています。
+
+#### バイト列に変換できる値
+バイト列との相互変換はメモリ命令や再解釈命令でよく出てくるのでトレイトを定義します。
+
+```rs
+pub trait Byteable: Sized {
+    type N: ArrayLength<u8>;
+
+    fn to_bytes(self) -> GenericArray<u8, Self::N>;
+    fn from_bytes(bytes: &GenericArray<u8, Self::N>) -> Self;
+}
+```
+
+`N`は型レベル整数で、`GenericArray`は固定長配列です。これを`{i/u}{8/16/32/64}`と、`f32`、`f64`に実装しています。
+
+#### 命令の実行
+`Stack`、`LabelStack`、`FrameStack`はそれぞれ命令を1ステップ実行する`step`関数を持っています。
+
+```rs
+// LabelStack
+fn step(&mut self, frame: &mut Frame) -> Result<Option<FrameLevelInstr>, WasmError> {
+    Ok(match self.instrs.pop() {
+        Some(instr) => match instr {
+            AdminInstr::Instr(instr) => {
+                match instr {
+                    // 各命令の処理(800行程度)
+                }
+                None
+            }
+            AdminInstr::Invoke(x) => Some(FrameLevelInstr::Invoke(x)),
+            AdminInstr::Label(l, is) => Some(FrameLevelInstr::Label(l, is)),
+            AdminInstr::Br(l) => Some(FrameLevelInstr::Br(l)),
+            AdminInstr::Return => Some(FrameLevelInstr::Return),
+        },
+        None => Some(FrameLevelInstr::LabelEnd),
+    })
+}
+
+// FrameStack
+pub fn step(&mut self) -> Result<Option<ModuleLevelInstr>, WasmError> {
+    let cur_lavel = self.stack.last_mut().unwrap();
+    Ok(if let Some(instr) = cur_lavel.step(&mut self.frame)? {
+        match instr {
+            // 各命令の処理(60行程度)
+        }
+    } else {
+        None
+    })
+}
+
+// Stack
+pub fn step(&mut self) -> Result<(), WasmError> {
+    let cur_frame = self.stack.last_mut().unwrap();
+    if let Some(instr) = cur_frame.step()? {
+        let cur_label = cur_frame.stack.last_mut().unwrap();
+        match instr {
+            // 各命令の処理(70行程度)
         }
     }
-    ︙
+    Ok(())
 }
 ```
 
-これは現在の`Frame`をpopして、返り値の数(`frame.n`)を確認しています。それが0個でなければ(つまり1個なら)現在の`Label`のスタックの最後の値を、返り先の`Frame`の`Label`のスタックにpushしています。
+ソースを見れば分かるように、`Stack`の`step`を呼び出すと`FrameStack`の`step`が呼び出され、`FrameStack`の`step`を呼び出すと`LabelStack`の`step`が呼び出されます。そしてほとんどの命令は`LabelStack`で処理されます。しかし`LabelStack`では処理出来ない命令があります。例えば制御構造に入る命令や、関数を呼び出す命令です。  
+制御構造に入るには`LabelStack`のスタックに値を積む必要がありますが、`Label`を一つしか持たない`LabelStack`では処理出来ません。関数呼び出しは`FrameStack`のスタックに値を積む必要がありますがこれもできません。このような処理に対応するために`LabelStack`の`step`は`Option<FrameLevelInstr>`を、`FrameStack`の`step`は`Option<ModuleLevelInstr>`を返すようになっています(ただし`trap`にも対応する必要があるので`Result`で包んでいます)。  
+`FrameLevelInstr`は`LabelStack`では処理出来ない命令、`ModuleLevelInstr`は`FrameStack`では処理出来ない命令で以下のようになっています。
+
+```rs
+pub enum FrameLevelInstr {
+    Label(Label, Vec<Instr>),
+    Br(LabelIdx),
+    LabelEnd,
+    Invoke(FuncAddr),
+    Return,
+}
+
+pub enum ModuleLevelInstr {
+    Invoke(FuncAddr),
+    Return,
+}
+```
+
+そして、これらを`step`の返り値で受け取った時は親が処理するようになっています(もし親も処理できなければ更に親に返します)。
+これが命令の実行方法です。
+
+ここから命令の処理を実際にいくつか解説していきます。しかし全て解説するのは無理なので詳しく知りたい方はソースを読んでください。
+
+* [LabelStack#step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L242)
+* [FrameStack#step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L96)
+* [Stack#step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L1108)
+
+まずかなり単純な`i32.const`命令です。
+
+```rs
+// LabelStack#step
+Instr::I32Const(x) => {
+    self.run_const(|| -> i32 { x });
+}
+```
+
+これはそのままですね。
+
+次に`i32.add`です。
+
+```rs
+// LabelStack#step
+Instr::I32Add => {
+    self.run_binop(|x: i32, y: i32| -> Result<i32, _> {
+        Ok(x.overflowing_add(y).0)
+    })?;
+}
+```
+
+`+`ではなく`overflowing_add`を使っているのはオーバーフロー時の処理も決められており、その処理と`overflowing_add`が一致していたからです。
+
+ローカル変数関連の命令を見てみましょう。例えば`get_local`です。
+
+```rs
+// LabelStack#step
+Instr::LocalGet(idx) => {
+    self.run_ok(|(): ()| -> (Val,) { (frame.locals[idx.to_idx()],) });
+}
+```
+
+引数で受け取った現在の`Frame`のローカル変数の値を取得しています。`to_idx`はインデックスを表すnewtypeから`usize`に変換する関数です。
+
+グローバル変数に関する命令は以下のようになっています。
+
+```rs
+// LabelStack#step
+Instr::GlobalSet(idx) => {
+    let instance = frame.module.upgrade().unwrap();
+
+    self.run_ok(|(x,): (Val,)| -> () {
+        instance.globals[idx.to_idx()].set(x).unwrap();
+        ()
+    });
+}
+```
+
+これは現在のフレームから現在のモジュールインスタンスを取得して(モジュールインスタンスは`Weak`で持っているので`upgrade`している)、グローバ変数を書き換えています。
+
+```rs
+// LabelStack#step
+Instr::If(rt, is1, is2) => {
+    let (x,) = self.pop_values::<(bool,)>();
+    self.instrs.push(AdminInstr::Label(
+        Label {
+            instrs: vec![],
+            n: rt.0.iter().count(),
+        },
+        if x { is1 } else { is2 },
+    ));
+}
+```
+
+次にメモリ命令として`f32.store`を見てみましょう。
+
+```rs
+// LabelStack#step
+Instr::F32Store(m) => {
+    let instance = frame.module.upgrade().unwrap();
+    self.run(|(ptr, x): (i32, f32)| -> Result<(), _> {
+        instance.mem.as_ref().unwrap().write::<f32>(&m, ptr, x)?;
+        Ok(())
+    })?;
+}                  
+```
+
+`MemAddr`に`write`という`Byteable`を実装している型をメモリに書き込める関数を作っているので活用しています。
+
+制御命令も見てみましょう。例えば`if`です。仕様は大体以下のようになっています。
+
+```
+(i32.const c) if [t^n] instr1 else instr2 end → label_n {} instr1 end (if c ≠ 0)
+(i32.const c) if [t^n] instr1 else instr2 end → label_n {} instr2 end (if c = 0)
+```
+
+つまり、スタックの一番上の値が0でなければ`then`節を、0なら`else`節を実行するという意味です。この時`label`が作られますが継続は空になります。`t^n`や`label_n`の`n`は結果の値の数で現在のwasmでは`0`か`1`になります。これを実装するとこうなります。
+
+```rs
+// LabelStack#step
+Instr::If(rt, is1, is2) => {
+    let (x,) = self.pop_values::<(bool,)>();
+    self.instrs.push(AdminInstr::Label(
+        Label {
+            instrs: vec![],
+            n: rt.0.iter().count(),
+        },
+        if x { is1 } else { is2 },
+    ));
+}
+```
+
+`bool`は`StackValues`を実装していて`0`でないかで`i32`を変換してくれるのでここでは`0`でないかを判定する必要はありません。`rt`は`Option<ValType>`のnewtype(`ResultType`)です。これが評価されると命令スタックの`If`が`Label`命令に変わります(`self.instrs.push`しているので命令が積まれる)。  
+ではこの`Label`命令の評価を見てみましょう。まず`LabelStack#step`の評価です。
+
+```rs
+// LabelStack#step
+AdminInstr::Label(l, is) => Some(FrameLevelInstr::Label(l, is)),
+```
+
+ここでは何もせずにただ返り値として返しています。これは`Label`を一つしか持たない`LabelStack`ではこれ以上できることがないからです。そこでこれを受け取った親の`FrameStack`がどう処理するかを見てみましょう。
+
+```rs
+// FrameStack#step
+FrameLevelInstr::Label(label, instrs) => {
+    self.stack.push(LabelStack {
+        label,
+        instrs: instrs.into_iter().map(AdminInstr::Instr).rev().collect(),
+        stack: vec![],
+    });
+    None
+}
+```
+
+受け取ったラベルと次に実行するべき命令を`LabelStack`のスタックにpushしています。`LabelStack`の`instrs`は`AdminInstr`のスタックですが、`FrameLevelInstr::Label`の`instrs`は`Instr`の命令列なので`AdminInstr::Instr`で包んで反転するという処理が入っています。`Label`命令は`FrameStack`で完結するので親である`Stack`には`None`を返しています。
+
+`Stack`の`Return`命令の処理も見てみましょう。仕様は以下のようになっています。
+
+```
+frame_n{F} B^k[val^n return] end → val^n
+```
+
+`n`は返り値の数で、`B^k[val^n return]`で最後の`label`を表しています。その最後の`label`の最後のスタックの値`val^n`を取り出せばいいわけです。ただネストしたスタックを採用しているので実装はかなり変わります。
+
+```rs
+// Stack#next
+ModuleLevelInstr::Return => {
+    let ret = cur_label.stack.pop();
+    if self.stack.pop().unwrap().frame.n != 0 {
+        self.stack
+            .last_mut()
+            .unwrap()
+            .stack
+            .last_mut()
+            .unwrap()
+            .stack
+            .push(ret.unwrap());
+    }
+}
+```
+
+現在のラベルのスタックの一番上の値をpopして`ret`に一時的に格納しておきます(返り値が複数になることはないので`0`個または`1`個である`Option<Val>`で十分です)。  
+そして現在の`FrameStack`のスタックの一番上の値をpopしてその`frame`の結果の数`n`を調べてそれが`0`でなければ、返り先の`frame`の最後の`label`のスタックにさっき格納しておいた`ret`をpushしています。
+
+#### 関数の呼び出し
+wasm関数を外部から呼び出す時の処理は以下のようになります。これは`FuncAddr`の関連関数です。
+[仕様書](https://webassembly.github.io/spec/core/exec/modules.html)の`Invocation`に仕様があります。
+
+```rs
+pub fn call(&self, params: Vec<Val>) -> Result<Option<Val>, WasmError> {
+    let mut stack = Stack {
+        stack: vec![FrameStack {
+            frame: Frame {
+                locals: Vec::new(),
+                module: Weak::new(),
+                n: 0,
+            },
+            stack: vec![LabelStack {
+                label: Label {
+                    instrs: vec![],
+                    n: 0,
+                },
+                instrs: vec![AdminInstr::Invoke(self.clone())],
+                stack: params,
+            }],
+        }],
+    };
+
+    loop {
+        stack.step()?;
+        if stack.stack.len() == 1
+            && stack.stack.first().unwrap().stack.len() == 1
+            && stack
+                .stack
+                .first()
+                .unwrap()
+                .stack
+                .first()
+                .unwrap()
+                .instrs
+                .is_empty()
+        {
+            break;
+        }
+    }
+
+    Ok(stack.stack.pop().unwrap().stack.pop().unwrap().stack.pop())
+}
+```
+
+これは引数でパラメーター`params`を受け取って、ダミーラベルを持つダミーフレームを作っています。ダミーラベルには実行対象の`FuncAddr`が設定された`Invoke`命令と、`params`をスタックに載せています。
+そして、ダミーフレームが値に評価されるまで`step`を呼び続けて値に評価されたら結果を返しています。
+
+#### インスタンス化
 
 
 wasmでは可変メモリを複数のモジュールインスタンスが共有することがありますが、Rustでは`&mut`を複数作ることが出来ないのでArenaパターンか、`Rc<RefCell<T>>`を使う必要がありますが今回は後者で行いました。メモリリークを防ぐために`Weak`を大量に使う必要があったりして大変なのでここは綺麗に書き換えせる方法があれば書き直したいです。  
