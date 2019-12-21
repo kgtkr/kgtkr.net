@@ -1248,12 +1248,21 @@ Ok(result)
 
 
 ## 公式のテストケース
-公式がテストケースを用意しているのでバグらせたけど原因がわからないと言ったときはとても便利です。  
+公式がwast形式のテストケースを用意してくれています。  
 
 https://github.com/WebAssembly/spec/tree/master/test/core
 
-wastというwatの拡張フォーマットになっており、これはwabtのwast2jsonを使うことでjsonと複数のwasmに変換することができます。
-jsonファイルには「このwasmのこの関数を実行した時結果はこうなる」といったテストケースが書かれているのでwasmファイルを自作インタプリタで動かして、jsonを読み込んでその通りにテストを実行するだけでデバッグにとても役立ちおすすめです。
+wastというのはwatの拡張形式で「この関数をこの順番で呼び出せばこの結果が返ってくる」といったassertや、複数モジュールを定義してそのモジュール間の連携とテストを書いたりすることができます。
+wastは[wabt](https://github.com/WebAssembly/wabt)の`wast2json`というコマンドで複数のwasmと、テストケースのjsonに変換して使うことが出来ます。  
+masterのwabtは`wast2json`の出力するwasmファイルが壊れる[バグ](https://github.com/WebAssembly/wabt/issues/1259)があるのでタグがついている一番最新のバージョンを使いましょう。  
+そしてwastのテストケースも[#1104](https://github.com/WebAssembly/spec/pull/1104)で、`assert_return_canonical_nan`と`assert_return_arithmetic_nan`が消されて`nan:canonical`と`nan:canonical`というリテラルのようなものが入ったのですが、まだ`wabt`が対応しておらず、`wasm2json`を実行するとエラーになるのでこのPRがマージされる前のものを使う必要があります(wabt以外の変換ツールを使えばいけるはずですが試してません)
+
+テストの実装はここです。
+https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/tests/spec.rs
+
+`assert_malformed`(モジュールのパースに失敗)はテキストフォーマットの実装ができていないので、`assert_invalid`(検証に失敗)は検証フェーズの実装ができてないので、`assert_exhaustion`(リソースを使い果たした)はスタックオーバーフローなどの実装ができていないので、`assert_return_canonical_nan`(結果がcanonical_nanである)と`assert_return_arithmetic_nan`(結果がarithmetic_nanである)はさっきのPRで消されてしまうのでテストをスキップしていますがそれ以外は全て通りました。
+
+出力したjsonをいい感じにパースして書いてあるとおりに実行すればテストできるのでかなり楽です。気をつける事があるとすればjsonの`value`は`i32/i64/f32/f64`に関係なく全て符号なし整数の文字列なのでそれをパースして、リトルエンディアンでバイト列に変換して、バイト列から対象の型に変換する必要があるくらいです。
 
 ## 自作言語を自作インタプリタで動かす
 一年前にHaskellでwasmにコンパイルする自作言語を作ったので([WebAssemblyにコンパイルする言語を実装する
