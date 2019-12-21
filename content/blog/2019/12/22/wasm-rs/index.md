@@ -1,7 +1,7 @@
 ---
 title: RustでWebAssemblyインタプリタ作った話
-date: "2019-12-02T10:21:22.931Z"
-update: "2019-12-02T10:21:22.931Z"
+date: "2019-12-21T09:22:20.475Z"
+update: "2019-12-21T09:22:20.475Z"
 tags: ["webassembly"]
 name: wasm-rs
 lang: ja
