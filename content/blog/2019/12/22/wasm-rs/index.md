@@ -8,6 +8,11 @@ lang: ja
 otherLang: []
 ---
 
+## はじめに
+RustでWebAssemblyインタプリタを作ったのでその実装の話や、wasmの仕様についての記事です。  
+`HList`を使ったジェネリックプログラミングの話や、最後の方には「自作言語 on 自作wasmインタプリタ on 自作wasmインタプリタ」みたいな話も出てきます。  
+分かりにくい所や間違っている所は指摘してくださると助かります。
+
 ## リポジトリ
 https://github.com/kgtkr/wasm-rs
 
@@ -617,8 +622,18 @@ where
 * [mem](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/mem.rs)
 * [table](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/table.rs)
 
-ランタイム構造を定義します。  
-スタックマシンとなっていますがなるべく仕様書通りに実装するためにスタックを以下のように定義しました。コメントに解説を書きました。
+そしてこれらのインスタンスを組み合わせた`ModuleInst`は以下のようになっています。
+
+```rs
+pub struct ModuleInst {
+    pub types: Vec<FuncType>,
+    pub funcs: Vec<FuncAddr>,
+    pub table: Option<TableAddr>,
+    pub mem: Option<MemAddr>,
+    pub globals: Vec<GlobalAddr>,
+    pub exports: Vec<ExportInst>,
+}
+```
 
 #### スタックの値の定義
 仕様書を読むとスタックには`Val`の他に関数の呼び出しラベルとフレームが含まれることが分かります。ラベルは制御構文に入ると積まれる値です。
@@ -894,14 +909,14 @@ pub enum ModuleLevelInstr {
 
 ここから命令の処理を実際にいくつか解説していきます。しかし全て解説するのは無理なので詳しく知りたい方はソースを読んでください。
 
-* [LabelStack#step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L242)
-* [FrameStack#step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L96)
-* [Stack#step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L1108)
+* [LabelStack::step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L242)
+* [FrameStack::step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L96)
+* [Stack::step](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/stack.rs#L1108)
 
 まずかなり単純な`i32.const`命令です。
 
 ```rs
-// LabelStack#step
+// LabelStack::step
 Instr::I32Const(x) => {
     self.run_const(|| -> i32 { x });
 }
@@ -912,7 +927,7 @@ Instr::I32Const(x) => {
 次に`i32.add`です。
 
 ```rs
-// LabelStack#step
+// LabelStack::step
 Instr::I32Add => {
     self.run_binop(|x: i32, y: i32| -> Result<i32, _> {
         Ok(x.overflowing_add(y).0)
@@ -925,7 +940,7 @@ Instr::I32Add => {
 ローカル変数関連の命令を見てみましょう。例えば`get_local`です。
 
 ```rs
-// LabelStack#step
+// LabelStack::step
 Instr::LocalGet(idx) => {
     self.run_ok(|(): ()| -> (Val,) { (frame.locals[idx.to_idx()],) });
 }
@@ -936,7 +951,7 @@ Instr::LocalGet(idx) => {
 グローバル変数に関する命令は以下のようになっています。
 
 ```rs
-// LabelStack#step
+// LabelStack::step
 Instr::GlobalSet(idx) => {
     let instance = frame.module.upgrade().unwrap();
 
@@ -950,7 +965,7 @@ Instr::GlobalSet(idx) => {
 これは現在のフレームから現在のモジュールインスタンスを取得して(モジュールインスタンスは`Weak`で持っているので`upgrade`している)、グローバ変数を書き換えています。
 
 ```rs
-// LabelStack#step
+// LabelStack::step
 Instr::If(rt, is1, is2) => {
     let (x,) = self.pop_values::<(bool,)>();
     self.instrs.push(AdminInstr::Label(
@@ -966,7 +981,7 @@ Instr::If(rt, is1, is2) => {
 次にメモリ命令として`f32.store`を見てみましょう。
 
 ```rs
-// LabelStack#step
+// LabelStack::step
 Instr::F32Store(m) => {
     let instance = frame.module.upgrade().unwrap();
     self.run(|(ptr, x): (i32, f32)| -> Result<(), _> {
@@ -988,7 +1003,7 @@ Instr::F32Store(m) => {
 つまり、スタックの一番上の値が0でなければ`then`節を、0なら`else`節を実行するという意味です。この時`label`が作られますが継続は空になります。`t^n`や`label_n`の`n`は結果の値の数で現在のwasmでは`0`か`1`になります。これを実装するとこうなります。
 
 ```rs
-// LabelStack#step
+// LabelStack::step
 Instr::If(rt, is1, is2) => {
     let (x,) = self.pop_values::<(bool,)>();
     self.instrs.push(AdminInstr::Label(
@@ -1002,17 +1017,17 @@ Instr::If(rt, is1, is2) => {
 ```
 
 `bool`は`StackValues`を実装していて`0`でないかで`i32`を変換してくれるのでここでは`0`でないかを判定する必要はありません。`rt`は`Option<ValType>`のnewtype(`ResultType`)です。これが評価されると命令スタックの`If`が`Label`命令に変わります(`self.instrs.push`しているので命令が積まれる)。  
-ではこの`Label`命令の評価を見てみましょう。まず`LabelStack#step`の評価です。
+ではこの`Label`命令の評価を見てみましょう。まず`LabelStack::step`の評価です。
 
 ```rs
-// LabelStack#step
+// LabelStack::step
 AdminInstr::Label(l, is) => Some(FrameLevelInstr::Label(l, is)),
 ```
 
 ここでは何もせずにただ返り値として返しています。これは`Label`を一つしか持たない`LabelStack`ではこれ以上できることがないからです。そこでこれを受け取った親の`FrameStack`がどう処理するかを見てみましょう。
 
 ```rs
-// FrameStack#step
+// FrameStack::step
 FrameLevelInstr::Label(label, instrs) => {
     self.stack.push(LabelStack {
         label,
@@ -1034,7 +1049,7 @@ frame_n{F} B^k[val^n return] end → val^n
 `n`は返り値の数で、`B^k[val^n return]`で最後の`label`を表しています。その最後の`label`の最後のスタックの値`val^n`を取り出せばいいわけです。ただネストしたスタックを採用しているので実装はかなり変わります。
 
 ```rs
-// Stack#next
+// Stack::next
 ModuleLevelInstr::Return => {
     let ret = cur_label.stack.pop();
     if self.stack.pop().unwrap().frame.n != 0 {
@@ -1103,10 +1118,133 @@ pub fn call(&self, params: Vec<Val>) -> Result<Option<Val>, WasmError> {
 そして、ダミーフレームが値に評価されるまで`step`を呼び続けて値に評価されたら結果を返しています。
 
 #### インスタンス化
+実際に処理を実行するには`Module`とimportする値を受け取って、`ModuleInst`を作らなければいけません。その処理の解説です。
+まずimportする値は以下のようになっています。
 
+```rs
+pub type ExternalModule = HashMap<String, ExternalVal>;
+pub type ImportObjects = HashMap<String, ExternalModule>;
 
-wasmでは可変メモリを複数のモジュールインスタンスが共有することがありますが、Rustでは`&mut`を複数作ることが出来ないのでArenaパターンか、`Rc<RefCell<T>>`を使う必要がありますが今回は後者で行いました。メモリリークを防ぐために`Weak`を大量に使う必要があったりして大変なのでここは綺麗に書き換えせる方法があれば書き直したいです。  
-命令の実行はこのような感じですが、他にもモジュールのデータを元にインスタンス化(例えば実際にバイト列を確保して初期化したり)といった処理も必要です。
+#[derive(Debug, Clone)]
+pub enum ExternalVal {
+    Func(FuncAddr),
+    Table(TableAddr),
+    Mem(MemAddr),
+    Global(GlobalAddr),
+}
+```
+
+`ExternalVal`はimportやexportできる値で、それのMapが`ExternalModule`、さらにそれのMapが`ImportObjects`です。
+
+[ModuleInst::new](https://github.com/kgtkr/wasm-rs/blob/adc-2019-12-22/src/exec/instance.rs#L108)が実際の処理です。
+この関数のシグネチャは以下のようになっています。結果が`Result`であることから分かるようにインスタンス化は失敗することがあります。例えばimportする値が存在しなかったり、`start`関数で`trap`した場合などです。
+
+```rs
+pub fn new(module: &Module, imports_objects: ImportObjects) -> Result<Rc<ModuleInst>, WasmError>;
+```
+
+まず`types`以外は空のモジュールを作ります。
+
+```rs
+let mut result = ModuleInst {
+    types: module.types.clone(),
+    funcs: Vec::new(),
+    table: None,
+    mem: None,
+    globals: Vec::new(),
+    exports: Vec::new(),
+};
+```
+
+次にモジュールのimport宣言と、importされた値を使って実際にimportしていきます。この時その名前を持つ値が存在するか、値の種類が正しいかだけでなく値の型チェックをする必要があります。
+
+```rs
+for import in &module.imports {
+    let val = imports_objects
+        .get(&import.module.0)
+        .and_then(|module| module.get(&import.name.0))
+        .cloned()
+        .ok_or_else(|| WasmError::LinkError)?;
+    match &import.desc {
+        ImportDesc::Func(idx) => {
+            result.funcs.push(
+                val.as_func()
+                    .filter(|func| func.type_().is_match(result.types.get_idx(*idx)))
+                    .ok_or_else(|| WasmError::LinkError)?,
+            );
+        }
+        // 省略
+    }
+}
+```
+
+各インスタンスは`type_`関数を持っており、各Typeは`is_match`関数を持っているのでこれでチェックすることが出来ます。
+`a.is_match(b)`は`a`が`b`のサブタイプかを判定しています。インスタンスの型を調べる仕様は仕様書の`External Typing`を、型のサブタイプは`Import Matching`に書いてあります。
+
+次にモジュールの各値をインスタンス化していきます。ただ、`funcs`のインスタンス化だけ特殊で、一旦ダミーの値を置いています。
+
+```rs
+for _ in &module.funcs {
+    result.funcs.push(FuncAddr::alloc_dummy());
+}
+
+if let Some(table) = module.tables.iter().next() {
+    let _ = result.table.replace(TableAddr::alloc(&table.type_));
+}
+
+// 省略
+```
+
+これは`ModuleInst`と`FuncInst`は循環参照しており、現状では渡すことが出来ないからです。ダミーの値を置いているのはこれをしないと以下のexportする値を作れないといった理由があります。
+
+```rs
+for export in &module.exports {
+    result.exports.push(ExportInst {
+        name: export.name.0.clone(),
+        value: match export.desc {
+            ExportDesc::Func(idx) => ExternalVal::Func(result.funcs.get_idx(idx).clone()),
+            ExportDesc::Global(idx) => {
+                ExternalVal::Global(result.globals.get_idx(idx).clone())
+            }
+            ExportDesc::Mem(_idx) => ExternalVal::Mem(result.mem.as_ref().unwrap().clone()),
+            ExportDesc::Table(_idx) => {
+                ExternalVal::Table(result.table.as_ref().unwrap().clone())
+            }
+        },
+    });
+}
+```
+
+ダミーの値はインスタンス化の最後のほうで実際の値に置き換えられます。
+まず、`ModuleInst`を`Rc`で包んで、関数をインスタンス化しています。
+そして`start`関数が存在すればそれが実行され結果が返されます。
+
+```rs
+let result = Rc::new(result);
+
+for (i, func) in module.funcs.iter().enumerate() {
+    let idx = i + module
+        .imports
+        .iter()
+        .map(|x| {
+            if let ImportDesc::Func(_) = x.desc {
+                1
+            } else {
+                0
+            }
+        })
+        .sum::<usize>();
+    result.funcs[idx].replace_dummy(func.clone(), Rc::downgrade(&result));
+}
+
+if let Some(start) = &module.start {
+    result.funcs.get_idx(start.func).call(vec![])?;
+}
+
+Ok(result)
+```
+
+その他のインスタンス化処理や、`data`や`elem`による`mem`や`table`の初期化は特に複雑な事をしていないので解説は省略します。
 
 
 ## 公式のテストケース
