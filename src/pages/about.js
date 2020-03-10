@@ -13,30 +13,133 @@ class AboutPage extends React.Component {
       <Layout location={this.props.location} title={siteTitle}>
         <SEO title="About" />
         <p>Web Developer</p>
-        <h2>Languages</h2>
-        <ul>
-          <li>TypeScript</li>
-          <li>Scala</li>
-          <li>Rust</li>
-          <li>Haskell</li>
-          <li>other...</li>
-        </ul>
         <h2>Projects</h2>
         <ul>
           <li>
-            <a href="https://anontown.com/">Anontown</a>
+            <div>
+              <strong>
+                <a href="https://github.com/anontown/anontown">Anontown</a>
+              </strong>
+            </div>
+            <div>
+              名無し制の掲示板。最も力を入れているプロジェクト。
+              <a href="https://anontown.com/">anontown.com</a>
+              で実際に使える。 技術スタック的な↓
+              <br />
+              <div>
+                バックエンド:
+                <br />
+                Node.js/TypeScript/Docker/ApolloGraphQL/MongoDB/ElasticSearch
+              </div>
+              <div>
+                フロントエンド: <br />
+                TypeScript/ApolloGraphQL/React
+              </div>
+            </div>
+            バックエンドは現在Scalaに移植中
           </li>
           <li>
-            <a href="https://github.com/kgtkr/typepark">Typepark</a>
+            <div>
+              <strong>
+                <a href="https://github.com/kgtkr/wasm-rs">wasm-rs</a>
+              </strong>
+            </div>
+            <div>Rust製のwasmインタプリタ</div>
           </li>
           <li>
-            <a href="https://github.com/kgtkr/mhxx-switch-cis">
-              MHXX Switch CIS
-            </a>
+            <div>
+              <strong>
+                <a href="https://github.com/kgtkr/calc">calc</a>
+              </strong>
+            </div>
+            <div>
+              色々な言語で有理数型作ってパーサー書いてCLI電卓作ってみようプロジェクト。言語の勉強用。
+            </div>
           </li>
           <li>
-            <a href="https://github.com/kgtkr/cl8w">cl8w</a>
+            <div>
+              <strong>
+                <a href="https://github.com/kgtkr/typepark">Typepark</a>
+              </strong>
+            </div>
+            <div>
+              TypeScript3.0でタプル型強化された！？色々楽しいことできそうライブラリ化しようみたいなやつ。
+              <br />
+              型レベル関数が色々入ってる。
+            </div>
           </li>
+          <li>
+            <div>
+              <strong>
+                <a href="https://github.com/kgtkr/mhxx-switch-cis">
+                  MHXX Switch CIS
+                </a>
+              </strong>
+            </div>
+            <div>
+              MHXX
+              Switch版のお守り一覧のスクショ画面読み込んでCSVデータ出力するやつ。Kotlin勉強ついでに作った。
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>
+                <a href="https://github.com/kgtkr/cl8w">cl8w</a>
+              </strong>
+            </div>
+            <div>
+              Haskell製の自作言語。
+              <a href="https://kgtkr.net/blog/2018/12/02/wasm-target-lang">
+                記事
+              </a>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>
+                <a href="https://github.com/kgtkr/procon">procon</a>
+              </strong>
+            </div>
+            <div>AtCoderに提出したコード置き場。</div>
+          </li>
+        </ul>
+        <h2>Languages</h2>
+        <ul>
+          <li>
+            <div>
+              <strong>TypeScript</strong>
+            </div>
+            <div>
+              名無し制掲示板Anontownのフロントエンド/バックエンドに使用したり、typeparkというTypeScriptの型で遊ぶライブラリを作ったりしている。
+              <br />
+              最も書ける言語だが好きな言語ではない。
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>Scala</strong>
+            </div>
+            <div>
+              Anontownの初期バージョンでバックエンドに使用していた。その後TypeScriptで書き直したが現在再度Scalaでバックエンドを書き直している。
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>Rust</strong>
+            </div>
+            <div>
+              競プロで使ったり、自作のwasmインタプリタを作るのに使ったりした。
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>Haskell</strong>
+            </div>
+            <div>
+              自作言語cl8wの開発に使ったのと、たまに競プロで使っている。
+            </div>
+          </li>
+          <li>other...</li>
         </ul>
         <h2>Accounts</h2>
         <ul>
@@ -53,10 +156,12 @@ class AboutPage extends React.Component {
             <a href="https://mstdn.kgtkr.net/@tech">Mastodon</a>
           </li>
           <li>
-            <a href="https://beta.atcoder.jp/users/kgtkr">AtCoder</a>
+            <a href="https://atcoder.jp/users/kgtkr">
+              AtCoder(Highest:1249,水)
+            </a>
           </li>
         </ul>
-        <h2>Accounts2</h2>
+        <h2>Contacts</h2>
         <table>
           <tbody>
             <tr>
@@ -68,33 +173,49 @@ class AboutPage extends React.Component {
               <td>tkr#5445</td>
             </tr>
             <tr>
-              <td>Switchフレコ</td>
+              <td>Switch FC</td>
               <td>SW-2592-6241-1436</td>
             </tr>
           </tbody>
         </table>
-        <h2>Bio</h2>
+        <h2>History</h2>
+        <table>
+          <tbody>
+            <tr>
+              <td>2000.11.06</td>
+              <td>誕生</td>
+            </tr>
+            <tr>
+              <td>2007.04-2016.03</td>
+              <td>公立小中学校</td>
+            </tr>
+            <tr>
+              <td>2016.04-2019.03</td>
+              <td>福岡県立博多青松高校</td>
+            </tr>
+            <tr>
+              <td>2019.04-2020.03</td>
+              <td>浪人生</td>
+            </tr>
+            <tr>
+              <td>2019.05-</td>
+              <td>都内某社でエンジニアインターン</td>
+            </tr>
+            <tr>
+              <td>2020.04-</td>
+              <td>明治大学総合数理学部先端メディアサイエンス学科(進学予定)</td>
+            </tr>
+          </tbody>
+        </table>
+        <h2>Comment</h2>
         <p>
-          Web開発を中心に言語実装したり競プロしたりしたりしている。言語自体にも興味があったり。関数型言語が好き。大学生になるのに失敗したので都内で
-          <del>ニート</del>エンジニアバイトしながら浪人生しています。
-          <br />
-          <a href="https://github.com/kgtkr/calc">沢山の言語で電卓実装</a>
-          みたいな事やってたり。
-          <br />
-          TypeScriptで型レベルプログラミングやったりも。
-          <a href="https://github.com/kgtkr/typepark">Typepark</a>
-          っていうライブラリにまとめ中。
-          <br />
-          <a href="https://github.com/anontown">Anontown</a>
-          はbetter2ch(現5ch)みたいなノリで始めた掲示板プロジェクト。色々迷走したけど今はReact+Node.jsで落ち着いてる。早くGraphQL導入したい。
-          <br />
-          競プロゆるふわ。現在水色。ほぼほぼRustでやってます。Rustで何かプロジェクト作りたい。
-          <br />
-          最近は
-          <a href="https://github.com/kgtkr/cl8w">
-            Haskellでwasmで動く言語実装
-          </a>
-          した。
+          Web開発を中心に言語実装や競プロも少ししている。2020.04〜大学進学予定。
+          関数型言語が好き。
+        </p>
+        <h2>このサイトについて</h2>
+        <p>
+          Gatsbyで作りました。 ソースコードはGitHubで公開しています(
+          <a href="https://github.com/kgtkr/kgtkr.net">kgtkr/kgtkr.net</a>)
         </p>
       </Layout>
     )
