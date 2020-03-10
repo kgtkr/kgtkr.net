@@ -10,7 +10,7 @@ import { StaticQuery, graphql, Link } from "gatsby"
 import Image from "gatsby-image"
 
 import { rhythm } from "../utils/typography"
-import { SocialIcon } from 'react-social-icons';
+import { SocialIcon } from "react-social-icons"
 
 function Bio() {
   return (
@@ -41,11 +41,18 @@ function Bio() {
             <div>
               Web Developer.
               <br />
-              <SocialIcon url={`https://twitter.com/${social.twitter}`} style={{ height: 25, width: 25 }} />
-              {" "}
-              <SocialIcon url={`https://github.com/${social.github}`} bgColor="#333" style={{ height: 25, width: 25 }} />
+              <SocialIcon
+                url={`https://twitter.com/${social.twitter}`}
+                style={{ height: 25, width: 25 }}
+              />{" "}
+              <SocialIcon
+                url={`https://github.com/${social.github}`}
+                bgColor="#333"
+                style={{ height: 25, width: 25 }}
+              />
               <div style={{ marginTop: 10 }}>
                 <Link to="/about">About</Link>
+                <Link to="/rss.xml">RSS</Link>
               </div>
             </div>
           </div>
