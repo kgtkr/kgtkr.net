@@ -51,8 +51,7 @@ function Bio() {
                 style={{ height: 25, width: 25 }}
               />
               <div style={{ marginTop: 10 }}>
-                <Link to="/about">About</Link>
-                <Link to="/rss.xml">RSS</Link>
+                <Link to="/about">About</Link> / <Link to="/rss.xml">RSS</Link>
               </div>
             </div>
           </div>
