@@ -44,7 +44,10 @@ class AboutPage extends React.Component {
                 <a href="https://github.com/kgtkr/wasm-rs">wasm-rs</a>
               </strong>
             </div>
-            <div>Rust製のwasmインタプリタ</div>
+            <div>
+              Rust製のwasmインタプリタ。
+              <a href="https://kgtkr.net/blog/2019/12/21/wasm-rs">記事</a>
+            </div>
           </li>
           <li>
             <div>
