@@ -124,8 +124,10 @@ module.exports = {
                 return Object.assign({}, edge.node.frontmatter, {
                   description: edge.node.excerpt,
                   date: edge.node.frontmatter.date,
-                  url: site.siteMetadata.siteUrl + edge.node.fields.slug,
-                  guid: site.siteMetadata.siteUrl + edge.node.fields.slug,
+                  url:
+                    site.siteMetadata.siteUrl + "blog" + edge.node.fields.slug,
+                  guid:
+                    site.siteMetadata.siteUrl + "blog" + edge.node.fields.slug,
                   custom_elements: [{ "content:encoded": edge.node.html }],
                 })
               })
@@ -150,9 +152,8 @@ module.exports = {
               }
             `,
             output: "/rss.xml",
-            title: "Your Site's RSS Feed",
+            title: "Tkr Blog RSS Feed",
             match: "^/blog/",
-            link: "https://feeds.feedburner.com/gatsby/blog",
           },
         ],
       },
