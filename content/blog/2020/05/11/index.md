@@ -12,7 +12,7 @@ otherLang: []
 https://atcoder.jp/contests/abc167/tasks/abc167_c
 
 ## 解法
-解法としては各本を買う/買わないで全探索すると`O(N^2)`で解けます。
+解法としては各本を買う/買わないで全探索すると`O(M2^N)`で解けます。
 `C_n A_n_m`は型としては`[(Int, [Int])]`になります。各要素の`(Int, [Int])`は単位元を`(0, 要素が0の無限リスト)`、演算をfstは足す、sndはzipして各要素を足すとするとモノイドになりそうですし問題を解くのに使えそうです。このようになる`(Int, [Int])`のnewtypeは`(Sum Int, Ap ZipList (Sum Int))`になります。`Ap`は`Applicative f`と`Monoid a`から`Monoid (f a)`を作るnewtypeです。`ZipList`は`pure`を`repeat x`、`liftA2`を`zip`して関数適用という`Applicative`実装を持つ`List`のnewtypeなので`Ap`と組み合わせると欲しい`Monoid`が得られます。
 ところで`newtype`の変換には`coerce`という関数が便利です。安全に変換できる2つの型同士をオーバーヘッドなしで変換してくれる便利関数です。ある型から`A`型に変換したい時は`TypeApplications`拡張と組み合わせて`id @A . coerce`と書くと型注釈が楽です。
 次に非決定性計算です。Haskellのリストモナドは非決定性計算なので全探索に便利です。
