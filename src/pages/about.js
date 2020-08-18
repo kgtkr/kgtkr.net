@@ -36,7 +36,6 @@ class AboutPage extends React.Component {
                 TypeScript/ApolloGraphQL/React
               </div>
             </div>
-            バックエンドは現在Scalaに移植中
           </li>
           <li>
             <div>
@@ -160,7 +159,7 @@ class AboutPage extends React.Component {
           </li>
           <li>
             <a href="https://atcoder.jp/users/kgtkr">
-              AtCoder(Highest:1249,水)
+              AtCoder(Highest:1249, 水)
             </a>
           </li>
         </ul>
@@ -206,15 +205,10 @@ class AboutPage extends React.Component {
             </tr>
             <tr>
               <td>2020.04-</td>
-              <td>明治大学総合数理学部先端メディアサイエンス学科(進学予定)</td>
+              <td>明治大学総合数理学部先端メディアサイエンス学科</td>
             </tr>
           </tbody>
         </table>
-        <h2>Comment</h2>
-        <p>
-          Web開発を中心に言語実装や競プロも少ししている。2020.04〜大学進学予定。
-          関数型言語が好き。
-        </p>
         <h2>このサイトについて</h2>
         <p>
           Gatsbyで作りました。 ソースコードはGitHubで公開しています(
