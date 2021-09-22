@@ -18,11 +18,22 @@ class AboutPage extends React.Component {
           <li>
             <div>
               <strong>
+                <a href="https://github.com/kgtkr/BarrageLCL">BarrageLCL</a>
+              </strong>
+            </div>
+            <div>
+              大学の授業の課題で提出した自作の弾幕生成DSL+簡単なシンタックスハイライトと補完機能付きの自作エディタ。Processing指定だったのでそれで作った(つらかった…)。
+              <a href="/blog/2020/09/16/ep-barrage-lcl">記事</a>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>
                 <a href="https://github.com/anontown/anontown">Anontown</a>
               </strong>
             </div>
             <div>
-              名無し制の掲示板。最も力を入れているプロジェクト。
+              名無し制の掲示板
               <a href="https://anontown.com/">anontown.com</a>
               で実際に使える。 技術スタック的な↓
               <br />
@@ -45,7 +56,7 @@ class AboutPage extends React.Component {
             </div>
             <div>
               Rust製のwasmインタプリタ。
-              <a href="https://kgtkr.net/blog/2019/12/21/wasm-rs">記事</a>
+              <a href="/blog/2019/12/21/wasm-rs">記事</a>
             </div>
           </li>
           <li>
@@ -168,11 +179,11 @@ class AboutPage extends React.Component {
           <tbody>
             <tr>
               <td>Email</td>
-              <td>kgtkr.jp@gmail.com</td>
+              <td>contact@kgtkr.net</td>
             </tr>
             <tr>
               <td>Discord</td>
-              <td>tkr#5445</td>
+              <td>tkr#9999</td>
             </tr>
             <tr>
               <td>Switch FC</td>
