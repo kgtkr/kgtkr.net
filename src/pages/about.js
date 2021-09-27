@@ -3,7 +3,6 @@ import { graphql } from "gatsby"
 
 import Layout from "../components/layout"
 import SEO from "../components/seo"
-
 class AboutPage extends React.Component {
   render() {
     const { data } = this.props
@@ -188,6 +187,14 @@ class AboutPage extends React.Component {
             <tr>
               <td>Switch FC</td>
               <td>SW-2592-6241-1436</td>
+            </tr>
+            <tr>
+              <td>PGP Public Key</td>
+              <td>
+                <a href="B30DBE9381E03D5DF30188C81F6EB9519F573241.txt">
+                  B30D BE93 81E0 3D5D F301 88C8 1F6E B951 9F57 3241
+                </a>
+              </td>
             </tr>
           </tbody>
         </table>
