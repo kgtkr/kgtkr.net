@@ -214,15 +214,11 @@ class AboutPage extends React.Component {
               <td>福岡県立博多青松高校</td>
             </tr>
             <tr>
-              <td>2019.04-2020.03</td>
-              <td>浪人生</td>
+              <td>2019.05-現在</td>
+              <td>HERP, Inc.(エンジニアインターン)</td>
             </tr>
             <tr>
-              <td>2019.05-</td>
-              <td>都内某社でエンジニアインターン</td>
-            </tr>
-            <tr>
-              <td>2020.04-</td>
+              <td>2020.04-現在</td>
               <td>明治大学総合数理学部先端メディアサイエンス学科</td>
             </tr>
           </tbody>
