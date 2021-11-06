@@ -6,7 +6,7 @@ tags: ["languageprocessor", "processing", "lsp", "vscode", "scala"]
 name: processing-language-server
 lang: ja
 otherLang: []
-private: true
+private: false
 ---
 
 ## 実装したもの
