@@ -1,0 +1,68 @@
+@import "~normalize.css";
+
+body {
+  font-family: 'Open Sans', 'Noto Sans JP', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+  font-weight: 400;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td {
+  padding-left: 1.16667rem;
+  padding-right: 1.16667rem;
+  padding-top: 0.875rem;
+  padding-bottom: calc(0.875rem - 1px);
+}
+
+td:first-child {
+  padding-left: 0;
+}
+
+tr {
+  border-bottom: 1px solid #ddd;
+}
+
+a {
+  text-decoration: none;
+  color: #007acc;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+li {
+  list-style: none;
+  margin-bottom: 0.5rem;
+}
+
+li::before {
+  content: '-';
+  color: #999;
+  position: absolute;
+  margin-left: -1rem;
+}
+
+code {
+  font-family: 'Source Code Pro', monospace;
+}
+
+.gatsby-remark-code-filename {
+  margin-bottom: -0.6rem;
+  padding: 0.5em 1em;
+
+  background-color: black;
+  color: white;
+
+  border-top-left-radius: 0.3em;
+  border-top-right-radius: 0.3em;
+}
+
+h4 {
+  text-transform: none !important;
+}
