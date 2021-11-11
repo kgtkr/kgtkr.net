@@ -24,8 +24,8 @@ const Tags: NextPage<Props> = (props) => {
 export default Tags;
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
-  const context = (require as any).context("../../blog", true, /\.md$/);
-  const keys: string[] = context.keys();
+  const context = require.context("../../blog", true, /\.md$/);
+  const keys = context.keys();
 
   return {
     props: {
