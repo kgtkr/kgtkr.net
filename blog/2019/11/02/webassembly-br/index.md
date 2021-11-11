@@ -5,7 +5,6 @@ update: "2019-11-02T09:32:02.029Z"
 tags: ["webassembly"]
 name: webassembly-br
 lang: ja
-otherLang: []
 ---
 
 ## はじめに

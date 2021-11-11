@@ -5,7 +5,6 @@ update: "2018-08-22T11:43:24.000Z"
 tags: []
 name: paging-data-with-changing-order
 lang: ja
-otherLang: []
 ---
 
 # 今回のデータ

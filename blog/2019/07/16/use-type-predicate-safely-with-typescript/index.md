@@ -5,7 +5,6 @@ update: "2019-07-17T14:59:35.372Z"
 tags: ["typescript"]
 name: use-type-predicate-safely-with-typescript
 lang: ja
-otherLang: ["en"]
 ---
 
 

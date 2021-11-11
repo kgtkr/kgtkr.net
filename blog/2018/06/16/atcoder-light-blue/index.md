@@ -5,7 +5,6 @@ update: "2018-06-16T15:32:26.000Z"
 tags: ["procon"]
 name: atcoder-light-blue
 lang: ja
-otherLang: []
 ---
 
 ABC100で水色になりました。せっかくなので色々振り返ってみようと思います

@@ -5,7 +5,6 @@ update: "2019-08-27T10:57:04.214Z"
 tags: ["typescript"]
 name: typescript-value-of-object-keys
 lang: ja
-otherLang: []
 ---
 
 ## 初めに

@@ -5,7 +5,6 @@ update: "2019-04-13T07:59:22.896Z"
 tags: ["gatsby"]
 name: hello-world
 lang: ja
-otherLang: ["en"]
 ---
 
 GatsbyJSを使ってブログを作ってみました。  

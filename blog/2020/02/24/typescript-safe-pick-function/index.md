@@ -5,7 +5,6 @@ update: "2020-02-24T09:21:09Z"
 tags: ["typescript"]
 name: typescript-safe-pick-function
 lang: ja
-otherLang: [en]
 ---
 
 ## pick関数

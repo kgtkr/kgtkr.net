@@ -5,7 +5,6 @@ update: "2018-09-19T15:23:47.000Z"
 tags: ["haskell"]
 name: difference-list
 lang: ja
-otherLang: []
 ---
 
 メモ

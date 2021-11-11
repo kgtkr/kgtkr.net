@@ -5,8 +5,6 @@ update: "2021-11-06T15:35:00.998Z"
 tags: ["languageprocessor", "processing", "lsp", "vscode", "scala"]
 name: processing-language-server
 lang: ja
-otherLang: []
-private: false
 ---
 
 ## 実装したもの

@@ -5,7 +5,6 @@ update: "2020-09-02T18:22:00.000Z"
 tags: ["typescript", "typelevelprogramming"]
 name: typescript-disable-recursion-limit
 lang: ja
-otherLang: []
 ---
 
 ## 初めに

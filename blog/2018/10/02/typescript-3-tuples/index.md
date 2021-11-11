@@ -5,7 +5,6 @@ update: "2018-10-02T15:50:50.000Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-3-tuples
 lang: ja
-otherLang: []
 ---
 
 # Extracting and spreading parameter lists with tuples
