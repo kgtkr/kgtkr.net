@@ -53,11 +53,12 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
         pages,
         A.chain((page) => page.matter.tags),
         NA.groupBy(identity),
+        R.map((arr) => arr.length),
         R.toArray,
         A.map(
-          ([tag, arr]): Tag => ({
-            name: tag,
-            count: arr.length,
+          ([name, count]): Tag => ({
+            name,
+            count,
           }),
         ),
         A.sort(TagOrd),
