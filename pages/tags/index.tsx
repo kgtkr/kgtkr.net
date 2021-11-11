@@ -1,22 +1,43 @@
 import React from "react";
 import { NextPage, GetStaticProps } from "next";
-import Image from "next/image";
-import profileImage from "../public/images/profile.png";
-import { SocialIcon } from "react-social-icons";
-import Link from "next/link";
 import styles from "./Tags.module.scss";
-import matter from "gray-matter";
+import { readPages } from "../../lib/page";
+import * as Ord from "fp-ts/Ord";
+import * as A from "fp-ts/Array";
+import { pipe, identity } from "fp-ts/function";
+import * as NA from "fp-ts/NonEmptyArray";
+import * as R from "fp-ts/Record";
+import * as N from "fp-ts/number";
+import * as S from "fp-ts/string";
+import Link from "next/link";
+import Title from "../../components/Title";
+
+type Tag = {
+  name: string;
+  count: number;
+};
+
+const TagOrd: Ord.Ord<Tag> = Ord.contramap(
+  (tag: Tag) => [tag.count, tag.name] as const,
+)(Ord.tuple(Ord.reverse(N.Ord), S.Ord));
 
 type Props = {
-  tags: string[];
+  tags: Tag[];
 };
 
 const Tags: NextPage<Props> = (props) => {
   return (
-    <div className={styles.container}>
-      {props.tags.map((tag) => (
-        <div>{tag}</div>
-      ))}
+    <div>
+      <Title title="All Tags" />
+      <ul className={styles.container}>
+        {props.tags.map((tag) => (
+          <li>
+            <Link
+              href={`/tags/${tag.name}`}
+            >{`${tag.name} (${tag.count})`}</Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
@@ -24,15 +45,23 @@ const Tags: NextPage<Props> = (props) => {
 export default Tags;
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
-  const context = require.context("../../blog", true, /\.md$/);
-  const keys = context.keys();
+  const pages = readPages();
 
   return {
     props: {
-      tags: keys.flatMap((key) => {
-        const { data } = matter(context(key).default);
-        return data.tags;
-      }),
+      tags: pipe(
+        pages,
+        A.chain((page) => page.matter.tags),
+        NA.groupBy(identity),
+        R.toArray,
+        A.map(
+          ([tag, arr]): Tag => ({
+            name: tag,
+            count: arr.length,
+          }),
+        ),
+        A.sort(TagOrd),
+      ),
     },
   };
 };

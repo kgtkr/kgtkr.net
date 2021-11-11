@@ -2,7 +2,7 @@
 title: ABC167 C - Skill UpをHaskellで解く
 date: "2020-05-11T00:28:59.803Z"
 update: "2020-05-11T00:28:59.803Z"
-tags: ["procon", Haskell]
+tags: ["procon", haskell]
 name: abc167-c-haskell
 lang: ja
 otherLang: []
