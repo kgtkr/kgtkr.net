@@ -7,6 +7,11 @@ import * as A from "fp-ts/Array";
 import * as S from "fp-ts/string";
 import * as NA from "fp-ts/NonEmptyArray";
 import * as R from "fp-ts/Record";
+import * as path from "path";
+
+const blogContext = require.context("../blog", true);
+
+const defaultLang = "ja";
 
 const Matter = z
   .object({
@@ -15,7 +20,7 @@ const Matter = z
     update: z.string(),
     tags: z.array(z.string()).default([]),
     name: z.string(),
-    lang: z.enum(["en", "ja"]).default("ja"),
+    lang: z.enum(["en", "ja"]).default(defaultLang),
     private: z.boolean().default(false),
   })
   .strict();
@@ -25,6 +30,7 @@ export type Matter = z.infer<typeof Matter>;
 export type Blog = {
   matter: Matter;
   markdown: string;
+  basedir: string;
 };
 
 const BlogOrd = Ord.contramap((x: Blog) => new Date(x.matter.date).valueOf())(
@@ -32,16 +38,16 @@ const BlogOrd = Ord.contramap((x: Blog) => new Date(x.matter.date).valueOf())(
 );
 
 export function readBlogs(): Blog[] {
-  const context = require.context("../blog", true, /\.md$/);
-  const keys = context.keys();
+  const keys = blogContext.keys().filter((x) => x.endsWith(".md"));
 
   return pipe(
     keys,
     A.map((key) => {
-      const { data, content } = matter(context(key).default);
+      const { data, content } = matter(blogContext(key).default);
       return {
         matter: Matter.parse(data),
         markdown: content,
+        basedir: path.dirname(key),
       };
     }),
     A.sort(BlogOrd),
@@ -82,5 +88,5 @@ export function blogToPath(blog: Blog): string {
     .toString()
     .padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}/${
     blog.matter.name
-  }`;
+  }${blog.matter.lang === defaultLang ? "" : `/${blog.matter.lang}`}`;
 }

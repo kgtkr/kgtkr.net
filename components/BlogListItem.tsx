@@ -1,6 +1,7 @@
 import Link from "next/link";
 import React from "react";
 import { Blog, blogToPath } from "../lib/blog";
+import { markdownToPlainText } from "../lib/markdown";
 
 type Props = {
   blog: Blog;
@@ -9,9 +10,10 @@ type Props = {
 function BlogListItem({ blog }: Props) {
   return (
     <div>
-      <div>
+      <h3>
         <Link href={blogToPath(blog)}>{blog.matter.title}</Link>
-      </div>
+      </h3>
+      <div>{markdownToPlainText(blog.markdown).substring(0, 140)}</div>
     </div>
   );
 }
