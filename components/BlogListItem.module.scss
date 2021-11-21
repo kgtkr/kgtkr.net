@@ -1,0 +1,16 @@
+.summary {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.subject a {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.createdAt {
+  font-size: 0.8rem;
+  color: #666;
+}
