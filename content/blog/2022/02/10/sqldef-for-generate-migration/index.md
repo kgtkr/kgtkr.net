@@ -10,7 +10,7 @@ private: false
 ---
 
 ## はじめに
-sqldefという目標とするスキーマを書くと, DBに接続して現在のスキーマと比較し, DBのスキーマが現在のスキーマに一致するように `CREATE TABLE` や `ALTER TABLE` などを実行してくれるGo製のcliツールがあります. 詳細は[GitHub](https://github.com/k0kubun/sqldef)や[https://k0kubun.hatenablog.com/entry/2018/08/25/114455](作者のブログ)を見てください.
+sqldefという目標とするスキーマを書くと, DBに接続して現在のスキーマと比較し, DBのスキーマが現在のスキーマに一致するように `CREATE TABLE` や `ALTER TABLE` などを実行してくれるGo製のcliツールがあります. 詳細は[GitHub](https://github.com/k0kubun/sqldef)や[作者のブログ](https://k0kubun.hatenablog.com/entry/2018/08/25/114455)を見てください.
 
 これを使うことでスキーマファイルを1つリポジトリに置いておけばいいので, マイグレーションコードを手書きした時の, DBのスキーマの全体像が分かりにくいという問題が解決します. しかし個人的にはマイグレーションコードはリポジトリにコミットして, それを実行したいです. そこで今回はsqldefをマイグレーションコード生成ツールとして使ってみます.
 
