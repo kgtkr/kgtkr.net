@@ -1,7 +1,7 @@
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Link from "next/link";
 import React from "react";
-import PostListItem from "../../components/PostListItem";
+import PostList from "../../components/PostList";
 import Title from "../../components/Title";
 import { Post, postsToTags, postToPath, readPosts } from "../../lib/blog";
 
@@ -16,11 +16,7 @@ const Tags: NextPage<Props> = props => {
       <Title title={`${props.tag} | Tags`} />
       <h2>Posts about "{props.tag}"</h2>
       <Link href="/tags">All tags</Link>
-      <div>
-        {props.posts.map(post => (
-          <PostListItem post={post} key={postToPath(post)}></PostListItem>
-        ))}
-      </div>
+      <PostList posts={props.posts} />
     </div>
   );
 };
