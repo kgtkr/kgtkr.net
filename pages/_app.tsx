@@ -9,22 +9,6 @@ function App({ Component, pageProps, router }: AppProps) {
     <div className={styles.container}>
       <Head>
         <link rel="icon" href="/images/profile.png" type="image/png" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Open+Sans"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Source+Code+Pro"
-          rel="stylesheet"
-        />
       </Head>
       <header
         className={`${styles.header} ${

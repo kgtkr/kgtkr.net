@@ -1,12 +1,14 @@
-import React from "react"
-import { graphql } from "gatsby"
+import React from "react";
+import { graphql } from "gatsby";
 
-import Layout from "../components/layout"
-import SEO from "../components/seo"
+import Layout from "../components/layout";
+import SEO from "../components/seo";
+import Link from "next/link";
+
 class AboutPage extends React.Component {
   render() {
-    const { data } = this.props
-    const siteTitle = data.site.siteMetadata.title
+    const { data } = this.props;
+    const siteTitle = data.site.siteMetadata.title;
 
     return (
       <Layout location={this.props.location} title={siteTitle}>
@@ -22,7 +24,7 @@ class AboutPage extends React.Component {
             </div>
             <div>
               大学の授業の課題で提出した自作の弾幕生成DSL+簡単なシンタックスハイライトと補完機能付きの自作エディタ。Processing指定だったのでそれで作った(つらかった…)。
-              <a href="/blog/2020/09/16/ep-barrage-lcl">記事</a>
+              <Link href="/blog/2020/09/16/ep-barrage-lcl">記事</Link>
             </div>
           </li>
           <li>
@@ -55,7 +57,7 @@ class AboutPage extends React.Component {
             </div>
             <div>
               Rust製のwasmインタプリタ。
-              <a href="/blog/2019/12/21/wasm-rs">記事</a>
+              <Link href="/blog/2019/12/21/wasm-rs">記事</Link>
             </div>
           </li>
           <li>
@@ -229,11 +231,11 @@ class AboutPage extends React.Component {
           <a href="https://github.com/kgtkr/kgtkr.net">kgtkr/kgtkr.net</a>)
         </p>
       </Layout>
-    )
+    );
   }
 }
 
-export default AboutPage
+export default AboutPage;
 
 export const pageQuery = graphql`
   query {
@@ -243,4 +245,4 @@ export const pageQuery = graphql`
       }
     }
   }
-`
+`;

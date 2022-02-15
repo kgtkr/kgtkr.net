@@ -14,7 +14,7 @@ const Tags: NextPage<Props> = props => {
   return (
     <div>
       <Title title={`${props.tag} | Tags`} />
-      <h2>Posts about "{props.tag}"</h2>
+      <h2>Posts about &quot;{props.tag}&quot;</h2>
       <Link href="/tags">All tags</Link>
       <PostList posts={props.posts} />
     </div>

@@ -44,7 +44,7 @@ function MdLink({ href, children }: { href: string; children: JSX.Element }) {
   return href.startsWith("https://") ||
     href.startsWith("http://") ||
     href.startsWith("//") ? (
-    <a href={href} target="_blank">
+    <a href={href} target="_blank" rel="noreferrer">
       {children}
     </a>
   ) : (
