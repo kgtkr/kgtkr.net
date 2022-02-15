@@ -18,7 +18,7 @@ function App({ Component, pageProps, router }: AppProps) {
           rel="stylesheet"
         />
         <link
-          href="https://fonts.googleapis.com/css2amily=Zen+Maru+Gothic:wght@500"
+          href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500"
           rel="stylesheet"
         />
         <link
