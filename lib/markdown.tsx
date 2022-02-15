@@ -15,6 +15,9 @@ import Link from "next/link";
 import Image from "next/image";
 import * as path from "path";
 import { toText } from "hast-util-to-text";
+import haskell from "highlight.js/lib/languages/haskell";
+import scala from "highlight.js/lib/languages/scala";
+import ocaml from "highlight.js/lib/languages/ocaml";
 
 function markdownProcessor(): Processor<
   Mdast.Root,
@@ -33,7 +36,7 @@ function markdownProcessor(): Processor<
 function rehypeProcessor(): Processor<Mdast.Root, Hast.Root, Hast.Root, void> {
   return markdownProcessor()
     .use(remarkRehype)
-    .use(rehypeHighlight)
+    .use(rehypeHighlight, { languages: { haskell, scala, ocaml } })
     .use(rehypeKatex);
 }
 
@@ -80,6 +83,7 @@ function rehypeToString(this: any) {
 }
 
 export function markdownToPlainText(markdown: string): string {
-  return rehypeProcessor().use(rehypeToString).processSync(markdown)
-    .value as any;
+  return rehypeProcessor()
+    .use(rehypeToString)
+    .processSync(markdown).value as any;
 }
