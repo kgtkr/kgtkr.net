@@ -34,7 +34,7 @@ function App({ Component, pageProps, router }: AppProps) {
         <Link href="/">Tkr Blog</Link>
       </header>
       <Component {...pageProps} />
-      <footer>© 2021. All rights reserved.</footer>
+      <footer>© {new Date().getFullYear()}. All rights reserved.</footer>
     </div>
   );
 }
