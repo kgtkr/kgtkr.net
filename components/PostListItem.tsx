@@ -2,14 +2,14 @@ import Link from "next/link";
 import React from "react";
 import { Post, postToPath } from "../lib/blog";
 import { markdownToPlainText } from "../lib/markdown";
-import styles from "./BlogListItem.module.scss";
+import styles from "./PostListItem.module.scss";
 import * as fns from "date-fns";
 
 type Props = {
   post: Post;
 };
 
-function BlogListItem({ post }: Props) {
+function PostListItem({ post }: Props) {
   return (
     <div>
       <div className={styles.subject}>
@@ -25,4 +25,4 @@ function BlogListItem({ post }: Props) {
   );
 }
 
-export default BlogListItem;
+export default PostListItem;
