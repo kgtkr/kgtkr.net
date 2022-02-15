@@ -37,10 +37,16 @@ const PostOrd = Ord.contramap((x: Post) => new Date(x.matter.date).valueOf())(
   Ord.reverse(N.Ord),
 );
 
-export function readPosts(): Post[] {
+let allPosts: Post[] | null = null;
+
+export function getAllPosts(): Post[] {
+  if (allPosts !== null) {
+    return allPosts;
+  }
+
   const keys = postContext.keys().filter(x => x.endsWith(".md"));
 
-  return pipe(
+  allPosts = pipe(
     keys,
     A.map(key => {
       const { data, content } = matter(postContext(key).default);
@@ -52,6 +58,8 @@ export function readPosts(): Post[] {
     }),
     A.sort(PostOrd),
   );
+
+  return allPosts;
 }
 
 export type Tag = {
@@ -63,8 +71,16 @@ const TagOrd: Ord.Ord<Tag> = Ord.contramap(
   (tag: Tag) => [tag.count, tag.name] as const,
 )(Ord.tuple(Ord.reverse(N.Ord), S.Ord));
 
-export function postsToTags(posts: Post[]): Tag[] {
-  return pipe(
+let allTags: Tag[] | null = null;
+
+export function getAllTags(): Tag[] {
+  if (allTags !== null) {
+    return allTags;
+  }
+
+  const posts = getAllPosts();
+
+  allTags = pipe(
     posts,
     A.chain(blog => blog.matter.tags),
     NA.groupBy(identity),
@@ -78,6 +94,8 @@ export function postsToTags(posts: Post[]): Tag[] {
     ),
     A.sort(TagOrd),
   );
+
+  return allTags;
 }
 
 export function postToPath(post: Post): string {

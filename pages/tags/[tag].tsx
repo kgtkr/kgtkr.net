@@ -3,7 +3,7 @@ import Link from "next/link";
 import React from "react";
 import PostList from "../../components/PostList";
 import Title from "../../components/Title";
-import { Post, postsToTags, postToPath, readPosts } from "../../lib/blog";
+import { Post, getAllTags, getAllPosts } from "../../lib/blog";
 
 type Props = {
   posts: Post[];
@@ -24,8 +24,7 @@ const Tags: NextPage<Props> = props => {
 export default Tags;
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const posts = readPosts();
-  const tags = postsToTags(posts);
+  const tags = getAllTags();
   return {
     paths: tags.map(tag => `/tags/${tag.name}`),
     fallback: false,
@@ -35,7 +34,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps<Props, { tag: string }> = async ({
   params,
 }) => {
-  const posts = readPosts();
+  const posts = getAllPosts();
   const filteredPosts = posts.filter(post =>
     post.matter.tags.includes(params!.tag),
   );

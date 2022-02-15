@@ -1,7 +1,7 @@
 import React from "react";
 import { NextPage, GetStaticProps } from "next";
 import styles from "./Tags.module.scss";
-import { postsToTags, readPosts, Tag } from "../../lib/blog";
+import { getAllTags, Tag } from "../../lib/blog";
 import Link from "next/link";
 import Title from "../../components/Title";
 
@@ -29,11 +29,9 @@ const Tags: NextPage<Props> = props => {
 export default Tags;
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
-  const blogs = readPosts();
-
   return {
     props: {
-      tags: postsToTags(blogs),
+      tags: getAllTags(),
     },
   };
 };
