@@ -10,14 +10,14 @@ type Props = {
   tag: string;
 };
 
-const Tags: NextPage<Props> = (props) => {
+const Tags: NextPage<Props> = props => {
   return (
     <div>
       <Title title={`${props.tag} | Tags`} />
-      <h2>"{props.tag}" tag posts</h2>
+      <h2>Posts about "{props.tag}"</h2>
       <Link href="/tags">All tags</Link>
       <div>
-        {props.blogs.map((blog) => (
+        {props.blogs.map(blog => (
           <BlogListItem blog={blog} key={blogToPath(blog)}></BlogListItem>
         ))}
       </div>
@@ -31,7 +31,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const blogs = readBlogs();
   const tags = blogsToTags(blogs);
   return {
-    paths: tags.map((tag) => `/tags/${tag.name}`),
+    paths: tags.map(tag => `/tags/${tag.name}`),
     fallback: false,
   };
 };
@@ -40,7 +40,7 @@ export const getStaticProps: GetStaticProps<Props, { tag: string }> = async ({
   params,
 }) => {
   const blogs = readBlogs();
-  const filteredBlogs = blogs.filter((blog) =>
+  const filteredBlogs = blogs.filter(blog =>
     blog.matter.tags.includes(params!.tag),
   );
   return {
