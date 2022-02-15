@@ -9,7 +9,7 @@ import * as NA from "fp-ts/NonEmptyArray";
 import * as R from "fp-ts/Record";
 import * as path from "path";
 
-const blogContext = require.context("../blog", true);
+const postContext = require.context("../posts", true);
 
 const defaultLang = "ja";
 
@@ -27,30 +27,30 @@ const Matter = z
 
 export type Matter = z.infer<typeof Matter>;
 
-export type Blog = {
+export type Post = {
   matter: Matter;
   markdown: string;
   basedir: string;
 };
 
-const BlogOrd = Ord.contramap((x: Blog) => new Date(x.matter.date).valueOf())(
+const PostOrd = Ord.contramap((x: Post) => new Date(x.matter.date).valueOf())(
   Ord.reverse(N.Ord),
 );
 
-export function readBlogs(): Blog[] {
-  const keys = blogContext.keys().filter((x) => x.endsWith(".md"));
+export function readPosts(): Post[] {
+  const keys = postContext.keys().filter(x => x.endsWith(".md"));
 
   return pipe(
     keys,
-    A.map((key) => {
-      const { data, content } = matter(blogContext(key).default);
+    A.map(key => {
+      const { data, content } = matter(postContext(key).default);
       return {
         matter: Matter.parse(data),
         markdown: content,
         basedir: path.dirname(key),
       };
     }),
-    A.sort(BlogOrd),
+    A.sort(PostOrd),
   );
 }
 
@@ -63,12 +63,12 @@ const TagOrd: Ord.Ord<Tag> = Ord.contramap(
   (tag: Tag) => [tag.count, tag.name] as const,
 )(Ord.tuple(Ord.reverse(N.Ord), S.Ord));
 
-export function blogsToTags(blogs: Blog[]): Tag[] {
+export function postsToTags(posts: Post[]): Tag[] {
   return pipe(
-    blogs,
-    A.chain((blog) => blog.matter.tags),
+    posts,
+    A.chain(blog => blog.matter.tags),
     NA.groupBy(identity),
-    R.map((arr) => arr.length),
+    R.map(arr => arr.length),
     R.toArray,
     A.map(
       ([name, count]): Tag => ({
@@ -80,13 +80,17 @@ export function blogsToTags(blogs: Blog[]): Tag[] {
   );
 }
 
-export function blogToPath(blog: Blog): string {
-  const date = new Date(blog.matter.date);
-  return `/blog/${date.getUTCFullYear().toString().padStart(4, "0")}/${(
-    date.getUTCMonth() + 1
-  )
+export function postToPath(post: Post): string {
+  const date = new Date(post.matter.date);
+  return `/blog/${date
+    .getUTCFullYear()
     .toString()
-    .padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}/${
-    blog.matter.name
-  }${blog.matter.lang === defaultLang ? "" : `/${blog.matter.lang}`}`;
+    .padStart(4, "0")}/${(date.getUTCMonth() + 1)
+    .toString()
+    .padStart(2, "0")}/${date
+    .getDate()
+    .toString()
+    .padStart(2, "0")}/${post.matter.name}${
+    post.matter.lang === defaultLang ? "" : `/${post.matter.lang}`
+  }`;
 }

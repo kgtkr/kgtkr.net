@@ -1,12 +1,12 @@
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Link from "next/link";
 import React from "react";
-import BlogListItem from "../../components/BlogListItem";
+import PostListItem from "../../components/PostListItem";
 import Title from "../../components/Title";
-import { Blog, blogsToTags, blogToPath, readBlogs } from "../../lib/blog";
+import { Post, postsToTags, postToPath, readPosts } from "../../lib/blog";
 
 type Props = {
-  blogs: Blog[];
+  posts: Post[];
   tag: string;
 };
 
@@ -17,8 +17,8 @@ const Tags: NextPage<Props> = props => {
       <h2>Posts about "{props.tag}"</h2>
       <Link href="/tags">All tags</Link>
       <div>
-        {props.blogs.map(blog => (
-          <BlogListItem blog={blog} key={blogToPath(blog)}></BlogListItem>
+        {props.posts.map(post => (
+          <PostListItem post={post} key={postToPath(post)}></PostListItem>
         ))}
       </div>
     </div>
@@ -28,8 +28,8 @@ const Tags: NextPage<Props> = props => {
 export default Tags;
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const blogs = readBlogs();
-  const tags = blogsToTags(blogs);
+  const posts = readPosts();
+  const tags = postsToTags(posts);
   return {
     paths: tags.map(tag => `/tags/${tag.name}`),
     fallback: false,
@@ -39,13 +39,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps<Props, { tag: string }> = async ({
   params,
 }) => {
-  const blogs = readBlogs();
-  const filteredBlogs = blogs.filter(blog =>
-    blog.matter.tags.includes(params!.tag),
+  const posts = readPosts();
+  const filteredPosts = posts.filter(post =>
+    post.matter.tags.includes(params!.tag),
   );
   return {
     props: {
-      blogs: filteredBlogs,
+      posts: filteredPosts,
       tag: params!.tag,
     },
   };
