@@ -57,7 +57,7 @@ function mkMdImage(
   context: __WebpackModuleApi.RequireContext,
 ) {
   return function MdImage({ src, alt }: { src: string; alt: string }) {
-    return <Image src={context(path.join(basedir, src))} alt={alt} />;
+    return <Image src={context("./" + path.join(basedir, src))} alt={alt} />;
   };
 }
 
@@ -74,6 +74,18 @@ function reactProcessor(
   });
 }
 
+export function Markdown(props: {
+  basedir: string;
+  context: __WebpackModuleApi.RequireContext;
+  markdown: string;
+}): JSX.Element {
+  const tree = reactProcessor(props.basedir, props.context).processSync(
+    props.markdown,
+  ).result;
+
+  return tree;
+}
+
 function rehypeToString(this: any) {
   Object.assign(this, { Compiler: compiler });
 
@@ -83,7 +95,6 @@ function rehypeToString(this: any) {
 }
 
 export function markdownToPlainText(markdown: string): string {
-  return rehypeProcessor()
-    .use(rehypeToString)
-    .processSync(markdown).value as any;
+  return rehypeProcessor().use(rehypeToString).processSync(markdown)
+    .value as any;
 }

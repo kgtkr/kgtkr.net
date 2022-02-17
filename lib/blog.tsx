@@ -8,6 +8,7 @@ import * as S from "fp-ts/string";
 import * as NA from "fp-ts/NonEmptyArray";
 import * as R from "fp-ts/Record";
 import * as path from "path";
+import { Markdown } from "./markdown";
 
 const postContext = require.context("../posts", true);
 
@@ -38,6 +39,16 @@ const PostOrd = Ord.contramap((x: Post) => new Date(x.matter.date).valueOf())(
 );
 
 let allPosts: Post[] | null = null;
+
+export function Content({ post }: { post: Post }): JSX.Element {
+  return (
+    <Markdown
+      context={postContext}
+      basedir={post.basedir}
+      markdown={post.markdown}
+    />
+  );
+}
 
 export function getAllPosts(): Post[] {
   if (allPosts !== null) {
@@ -116,15 +127,15 @@ export function toPath({
   slug,
   lang,
 }: {
-  year: number;
-  month: number;
-  day: number;
+  year: number | string;
+  month: number | string;
+  day: number | string;
   slug: string;
-  lang: string;
+  lang?: string;
 }): string {
-  return `/blog/${year.toString().padStart(4, "0")}/${month
-    .toString()
-    .padStart(2, "0")}/${day.toString().padStart(2, "0")}/${slug}${
-    lang === defaultLang ? "" : `/${lang}`
-  }`;
+  return `/blog/${
+    typeof year === "string" ? year : year.toString().padStart(4, "0")
+  }/${typeof month === "string" ? month : month.toString().padStart(2, "0")}/${
+    typeof day === "string" ? day : day.toString().padStart(2, "0")
+  }/${slug}${lang === undefined || lang === defaultLang ? "" : `/${lang}`}`;
 }
