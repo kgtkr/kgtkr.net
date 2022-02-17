@@ -3,6 +3,7 @@ import remarkRehype from "remark-rehype";
 import remarkParse from "remark-parse";
 import emoji from "remark-emoji";
 import { remarkCodeFilename } from "./remark-code-filename";
+import { remarkAutoLink } from "./remark-auto-link";
 import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
@@ -29,6 +30,7 @@ function markdownProcessor(): Processor<
     .use(remarkParse)
     .use(remarkBreaks)
     .use(remarkCodeFilename)
+    .use(remarkAutoLink)
     .use(emoji)
     .use(remarkMath);
 }
