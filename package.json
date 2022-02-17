@@ -55,7 +55,8 @@
   "scripts": {
     "format": "prettier --write src/**/*.{ts,tsx}",
     "dev": "next dev",
-    "build": "next build && next export",
-    "lint": "next lint"
+    "build": "next build",
+    "lint": "next lint",
+    "start": "next start"
   }
 }
