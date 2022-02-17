@@ -25,7 +25,7 @@ const Home: NextPage<Props> = (props) => {
 
 export default Home;
 
-export const getStaticProps: GetStaticProps<Props, {}> = async ({ params }) => {
+export const getStaticProps: GetStaticProps<Props, {}> = async ({}) => {
   const posts = getAllPosts();
   return {
     props: {
