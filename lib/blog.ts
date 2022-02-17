@@ -44,11 +44,11 @@ export function getAllPosts(): Post[] {
     return allPosts;
   }
 
-  const keys = postContext.keys().filter(x => x.endsWith(".md"));
+  const keys = postContext.keys().filter((x) => x.endsWith(".md"));
 
   allPosts = pipe(
     keys,
-    A.map(key => {
+    A.map((key) => {
       const { data, content } = matter(postContext(key).default);
       return {
         matter: Matter.parse(data),
@@ -82,9 +82,9 @@ export function getAllTags(): Tag[] {
 
   allTags = pipe(
     posts,
-    A.chain(blog => blog.matter.tags),
+    A.chain((blog) => blog.matter.tags),
     NA.groupBy(identity),
-    R.map(arr => arr.length),
+    R.map((arr) => arr.length),
     R.toArray,
     A.map(
       ([name, count]): Tag => ({
@@ -100,15 +100,31 @@ export function getAllTags(): Tag[] {
 
 export function postToPath(post: Post): string {
   const date = new Date(post.matter.date);
-  return `/blog/${date
-    .getUTCFullYear()
+  return toPath({
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth() + 1,
+    day: date.getUTCDate(),
+    slug: post.matter.name,
+    lang: post.matter.lang,
+  });
+}
+
+export function toPath({
+  year,
+  month,
+  day,
+  slug,
+  lang,
+}: {
+  year: number;
+  month: number;
+  day: number;
+  slug: string;
+  lang: string;
+}): string {
+  return `/blog/${year.toString().padStart(4, "0")}/${month
     .toString()
-    .padStart(4, "0")}/${(date.getUTCMonth() + 1)
-    .toString()
-    .padStart(2, "0")}/${date
-    .getDate()
-    .toString()
-    .padStart(2, "0")}/${post.matter.name}${
-    post.matter.lang === defaultLang ? "" : `/${post.matter.lang}`
+    .padStart(2, "0")}/${day.toString().padStart(2, "0")}/${slug}${
+    lang === defaultLang ? "" : `/${lang}`
   }`;
 }
