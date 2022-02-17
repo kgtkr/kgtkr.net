@@ -54,38 +54,49 @@ function MdLink({ href, children }: { href: string; children: JSX.Element }) {
   );
 }
 
-function mkMdImage(
-  basedir: string,
-  context: __WebpackModuleApi.RequireContext,
-) {
-  return function MdImage({ src, alt }: { src: string; alt: string }) {
-    return <Image src={context("./" + path.join(basedir, src))} alt={alt} />;
-  };
+function MdImage({ src, alt }: { src: string; alt: string }) {
+  const markdownContext = React.useContext(MarkdownContext);
+  if (markdownContext === null) {
+    throw new Error("MarkdownContext is null");
+  }
+
+  const { basedir, context } = markdownContext;
+
+  return <Image src={context("./" + path.join(basedir, src))} alt={alt} />;
 }
 
-function reactProcessor(
-  basedir: string,
-  context: __WebpackModuleApi.RequireContext,
-) {
+function reactProcessor() {
   return rehypeProcessor().use(rehypeReact, {
     createElement: React.createElement,
     components: {
       a: MdLink as any,
-      img: mkMdImage(basedir, context) as any,
+      img: MdImage as any,
     },
   });
 }
+
+const MarkdownContext = React.createContext<null | {
+  basedir: string;
+  context: __WebpackModuleApi.RequireContext;
+}>(null);
 
 export function Markdown(props: {
   basedir: string;
   context: __WebpackModuleApi.RequireContext;
   markdown: string;
 }): JSX.Element {
-  const tree = reactProcessor(props.basedir, props.context).processSync(
-    props.markdown,
-  ).result;
+  const element = reactProcessor().processSync(props.markdown).result;
 
-  return tree;
+  return (
+    <MarkdownContext.Provider
+      value={{
+        basedir: props.basedir,
+        context: props.context,
+      }}
+    >
+      {element}
+    </MarkdownContext.Provider>
+  );
 }
 
 function rehypeToString(this: any) {
