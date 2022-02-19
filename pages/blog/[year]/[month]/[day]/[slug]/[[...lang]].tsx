@@ -1,5 +1,6 @@
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import React from "react";
+import Title from "../../../../../../components/Title";
 import {
   getAllPosts,
   postToPath,
@@ -7,6 +8,8 @@ import {
   toPath,
   Content,
 } from "../../../../../../lib/blog";
+import * as fns from "date-fns";
+import Tags from "../../../../../../components/Tags";
 
 type Props = {
   post: Post;
@@ -15,7 +18,12 @@ type Props = {
 const Post: NextPage<Props> = ({ post }) => {
   return (
     <div>
+      <Title title={post.matter.title} />
       <h1>{post.matter.title}</h1>
+      <div>
+        {fns.format(new Date(post.matter.date), "yyyy/MM/dd")}
+        <Tags tags={post.matter.tags}></Tags>
+      </div>
       <Content post={post} />
     </div>
   );

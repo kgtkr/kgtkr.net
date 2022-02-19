@@ -9,12 +9,12 @@ type Props = {
   tags: Tag[];
 };
 
-const Tags: NextPage<Props> = props => {
+const Tags: NextPage<Props> = (props) => {
   return (
     <div>
       <Title title="All Tags" />
       <ul className={styles.container}>
-        {props.tags.map(tag => (
+        {props.tags.map((tag) => (
           <li key={tag.name}>
             <Link
               href={`/tags/${tag.name}`}
