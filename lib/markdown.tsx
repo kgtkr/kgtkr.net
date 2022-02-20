@@ -63,7 +63,18 @@ function MdImage({ src, alt }: { src: string; alt: string }) {
 
   const { basedir, context } = markdownContext;
 
-  return <Image src={context("./" + path.join(basedir, src))} alt={alt} />;
+  return (
+    <Image
+      src={
+        src.startsWith("https://") ||
+        src.startsWith("http://") ||
+        src.startsWith("//")
+          ? src
+          : context("./" + path.join(basedir, src))
+      }
+      alt={alt}
+    />
+  );
 }
 
 function reactProcessor() {
