@@ -19,6 +19,7 @@ import { toText } from "hast-util-to-text";
 import haskell from "highlight.js/lib/languages/haskell";
 import scala from "highlight.js/lib/languages/scala";
 import ocaml from "highlight.js/lib/languages/ocaml";
+import { toHtml } from "hast-util-to-html";
 
 function markdownProcessor(): Processor<
   Mdast.Root,
@@ -107,7 +108,19 @@ function rehypeToString(this: any) {
   }
 }
 
+function rehypeToHtml(this: any) {
+  Object.assign(this, { Compiler: compiler });
+
+  function compiler(tree: Hast.Root) {
+    return toHtml(tree);
+  }
+}
+
 export function markdownToPlainText(markdown: string): string {
   return rehypeProcessor().use(rehypeToString).processSync(markdown)
     .value as any;
+}
+
+export function markdownToHtml(markdown: string): string {
+  return rehypeProcessor().use(rehypeToHtml).processSync(markdown).value as any;
 }

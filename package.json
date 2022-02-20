@@ -13,6 +13,7 @@
     "fp-ts": "^2.11.5",
     "gray-matter": "^4.0.3",
     "hast": "^1.0.0",
+    "hast-util-to-html": "^8.0.3",
     "hast-util-to-text": "^3.1.1",
     "highlight.js": "^11.4.0",
     "katex": "^0.15.1",
@@ -34,6 +35,7 @@
     "remark-emoji": "^3.0.2",
     "remark-math": "^5.1.1",
     "remark-rehype": "^10.0.1",
+    "rss": "^1.2.2",
     "sass": "^1.43.4",
     "unified": "^10.1.1",
     "zod": "^3.11.6"
@@ -42,6 +44,7 @@
     "@types/gtag.js": "^0.0.8",
     "@types/node": "^16.11.6",
     "@types/react": "^17.0.34",
+    "@types/rss": "^0.0.29",
     "eslint": "^7.32.0",
     "eslint-config-next": "^12.0.10",
     "prettier": "^2.4.1",
