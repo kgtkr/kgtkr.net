@@ -4,6 +4,7 @@ import Link from "next/link";
 import styles from "./_app.module.scss";
 import Head from "next/head";
 import GoogleAnalytics from "../components/GoogleAnalytics";
+import "highlight.js/styles/default.css";
 
 function App({ Component, pageProps, router }: AppProps) {
   return (
