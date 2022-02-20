@@ -52,7 +52,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Generate tags
-        uses: kgtkr/docker-tags-gen-action@v1
+        uses: kgtkr/docker-tags-gen-action@v2
         id: tags
         with:
           name: ghcr.io/${{ github.repository_owner }}/kgtkr.net
