@@ -51,7 +51,9 @@ function MdLink({ href, children }: { href: string; children: JSX.Element }) {
       {children}
     </a>
   ) : (
-    <Link href={href}>{children}</Link>
+    <Link href={href}>
+      <>{children}</>
+    </Link>
   );
 }
 
