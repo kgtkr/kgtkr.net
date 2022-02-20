@@ -10,7 +10,7 @@ type Props = {
   tag: string;
 };
 
-const Tags: NextPage<Props> = props => {
+const Tags: NextPage<Props> = (props) => {
   return (
     <div>
       <Title title={`${props.tag} | Tags`} />
@@ -26,7 +26,7 @@ export default Tags;
 export const getStaticPaths: GetStaticPaths = async () => {
   const tags = getAllTags();
   return {
-    paths: tags.map(tag => `/tags/${tag.name}`),
+    paths: tags.map((tag) => `/tags/${tag.name}`),
     fallback: false,
   };
 };
@@ -35,7 +35,7 @@ export const getStaticProps: GetStaticProps<Props, { tag: string }> = async ({
   params,
 }) => {
   const posts = getAllPosts();
-  const filteredPosts = posts.filter(post =>
+  const filteredPosts = posts.filter((post) =>
     post.matter.tags.includes(params!.tag),
   );
   return {

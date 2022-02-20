@@ -10,7 +10,7 @@ type Props = {
 function PostList({ posts }: Props) {
   return (
     <div>
-      {posts.map(post => (
+      {posts.map((post) => (
         <div className={styles.item} key={postToPath(post)}>
           <PostListItem post={post}></PostListItem>
         </div>

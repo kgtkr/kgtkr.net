@@ -58,7 +58,7 @@
     "url": "git+https://github.com/kgtkr/kgtkr.net.git"
   },
   "scripts": {
-    "format": "prettier --write src/**/*.{ts,tsx}",
+    "format": "prettier --write {components,lib,pages}/**/*.{js,jsx,ts,tsx}",
     "dev": "next dev",
     "build": "next build",
     "lint": "next lint",
