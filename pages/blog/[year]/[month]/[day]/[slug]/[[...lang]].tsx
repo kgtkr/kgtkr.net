@@ -20,8 +20,8 @@ const Post: NextPage<Props> = ({ post }) => {
     <div>
       <Title title={post.matter.title} />
       <h1>{post.matter.title}</h1>
+      <div>{fns.format(new Date(post.matter.date), "yyyy/MM/dd")}</div>
       <div>
-        {fns.format(new Date(post.matter.date), "yyyy/MM/dd")}
         <Tags tags={post.matter.tags}></Tags>
       </div>
       <Content post={post} />
