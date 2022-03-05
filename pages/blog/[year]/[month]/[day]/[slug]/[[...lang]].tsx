@@ -10,6 +10,8 @@ import {
 } from "../../../../../../lib/blog";
 import * as fns from "date-fns";
 import Tags from "../../../../../../components/Tags";
+import Head from "next/head";
+import { markdownToPlainText } from "../../../../../../lib/markdown";
 
 type Props = {
   post: Post;
@@ -19,6 +21,12 @@ const Post: NextPage<Props> = ({ post }) => {
   return (
     <div>
       <Title title={post.matter.title} />
+      <Head>
+        <meta
+          property="og:description"
+          content={markdownToPlainText(post.markdown).substring(0, 140)}
+        />
+      </Head>
       <h1>{post.matter.title}</h1>
       <div>{fns.format(new Date(post.matter.date), "yyyy/MM/dd")}</div>
       <div>

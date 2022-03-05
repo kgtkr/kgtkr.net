@@ -9,6 +9,10 @@ function Title({ title }: Props) {
   return (
     <Head>
       <title>{title !== undefined ? `${title} | ` : ""}Tkr Blog</title>
+      {title !== undefined ? (
+        <meta property="og:title" content={title} />
+      ) : null}
+      <meta property="og:site_name" content="Tkr Blog" />
     </Head>
   );
 }
