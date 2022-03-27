@@ -5,6 +5,7 @@ update: "2018-12-01T13:34:55.000Z"
 tags: ["webassembly","languageprocessor"]
 name: wasm-memory-allocator
 lang: ja
+otherLang: []
 ---
 # 初めに
 WebAssemblyには線形メモリがあるだけで動的なメモリ管理機能はありません。

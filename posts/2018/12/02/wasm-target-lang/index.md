@@ -5,6 +5,7 @@ update: "2018-12-02T17:58:42.000Z"
 tags: ["webassembly","languageprocessor"]
 name: wasm-target-lang
 lang: ja
+otherLang: []
 ---
 # はじめに
 Haskellでwasmにコンパイルする言語を実装してみたので記事にしました。

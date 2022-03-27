@@ -5,6 +5,7 @@ update: "2019-12-08T10:58:47.086Z"
 tags: ["webassembly", "stage"]
 name: slide-student-lt-31
 lang: ja
+otherLang: []
 ---
 
 ## 資料

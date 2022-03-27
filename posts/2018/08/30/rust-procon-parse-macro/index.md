@@ -5,6 +5,7 @@ update: "2018-08-30T10:39:29.000Z"
 tags: ["procon","rust"]
 name: rust-procon-parse-macro
 lang: ja
+otherLang: []
 ---
 競プロで標準入力のパースがめんどうだったのでマクロ作りました。
 AtCoderのRust(1.15.1)でテスト済みです。

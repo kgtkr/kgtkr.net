@@ -5,6 +5,7 @@ update: "2019-03-20T14:09:58.000Z"
 tags: ["javascript","react"]
 name: react-hooks-effect
 lang: ja
+otherLang: []
 ---
 # 初めに
 以下のコードはstateの値が変わった時どのような動作をすると思いますか？

@@ -5,6 +5,7 @@ update: "2019-04-14T14:43:48.520Z"
 tags: ["gatsby"]
 name: hello-world
 lang: en
+otherLang: ["ja"]
 ---
 
 I made blog using GatsbyJS.

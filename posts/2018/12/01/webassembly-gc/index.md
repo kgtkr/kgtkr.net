@@ -5,6 +5,7 @@ update: "2018-12-01T22:00:16.000Z"
 tags: ["webassembly","languageprocessor"]
 name: webassembly-gc
 lang: ja
+otherLang: []
 ---
 # 初めに
 [この記事](/blog/2018/12/01/wasm-memory-allocator/)でメモリアロケータを実装したので今回はGCを実装してみます。

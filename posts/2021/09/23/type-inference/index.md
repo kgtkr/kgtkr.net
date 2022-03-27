@@ -5,6 +5,7 @@ update: "2021-09-22T17:36:41.456Z"
 tags: ["languageprocessor", "ocaml", "tklang"]
 name: type-inference
 lang: ja
+otherLang: []
 ---
 
 [プログラミング言語の基礎概念](https://www.amazon.co.jp/dp/4781912850)を読んで実装したのでメモ。[OCaml実装](https://github.com/kgtkr/tklang/tree/4c2cd5de84ec872e9366470228580ed16cca5eb1)。間違っているところがあったら指摘して下さると助かります。

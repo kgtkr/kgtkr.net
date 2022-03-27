@@ -5,6 +5,7 @@ update: "2019-04-11T12:55:14.000Z"
 tags: ["typescript","typelevelprogramming"]
 name: io-ts
 lang: ja
+otherLang: []
 ---
 # TypeScriptのランタイム型チェック
 TypeScriptにはランタイム型チェック機能がありません。

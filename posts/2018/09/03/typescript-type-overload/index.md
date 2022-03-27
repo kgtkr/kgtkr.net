@@ -5,6 +5,7 @@ update: "2018-09-03T09:46:03.000Z"
 tags: ["typescript"]
 name: typescript-type-overload
 lang: ja
+otherLang: []
 ---
 # spread operator
 ```ts

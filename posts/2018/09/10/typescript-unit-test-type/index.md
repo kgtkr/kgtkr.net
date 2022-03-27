@@ -5,6 +5,7 @@ update: "2019-04-22T12:12:04.994Z"
 tags: ["typescript", "typelevelprogramming"]
 name: typescript-unit-test-type
 lang: ja
+otherLang: []
 ---
 
 # やり方

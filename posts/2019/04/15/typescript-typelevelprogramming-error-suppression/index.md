@@ -5,6 +5,7 @@ update: "2019-04-15T04:07:06.208Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-typelevelprogramming-error-suppression
 lang: ja
+otherLang: ["en"]
 ---
 
 TypeScriptの型レベルプログラミングでは様々な型エラーが発生するため、それを抑制しながら作っていかなければいけません。  

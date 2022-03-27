@@ -5,6 +5,7 @@ update: "2020-02-06T09:25:23Z"
 tags: ["typescript"]
 name: typescript-never-technique
 lang: ja
+otherLang: []
 ---
 
 以下のコードを見てください。

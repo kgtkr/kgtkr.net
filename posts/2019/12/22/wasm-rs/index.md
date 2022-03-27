@@ -5,6 +5,7 @@ update: "2019-12-21T09:22:20.475Z"
 tags: ["webassembly"]
 name: wasm-rs
 lang: ja
+otherLang: []
 ---
 
 ## はじめに

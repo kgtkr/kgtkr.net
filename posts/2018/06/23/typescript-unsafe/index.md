@@ -5,6 +5,7 @@ update: "2019-10-03T05:25:22.937Z"
 tags: ["typescript"]
 name: typescript-unsafe
 lang: ja
+otherLang: []
 ---
 # 初めに
 TypeScript(以下TS)はJSに静的型システムを取り入れた言語です。
