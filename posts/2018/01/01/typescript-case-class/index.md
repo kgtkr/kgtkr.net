@@ -5,7 +5,7 @@ update: "2018-01-01T12:28:05.000Z"
 tags: ["typescript"]
 name: typescript-case-class
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 # 初めに
 継承が必要ない場合は他の方が書いた下記記事を参考にして下さい。

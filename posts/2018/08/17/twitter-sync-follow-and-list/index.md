@@ -5,7 +5,7 @@ update: "2018-08-17T08:25:03.000Z"
 tags: ["twitter"]
 name: twitter-sync-follow-and-list
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 CK/CS/TK/TSに認証情報を、LIST_NAMEにリスト名を入れて実行すると同期されます
 

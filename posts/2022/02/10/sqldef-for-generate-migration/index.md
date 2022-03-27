@@ -5,7 +5,7 @@ update: "2022-02-10T15:08:29.936Z"
 tags: ["sql"]
 name: sqldef-for-generate-migration
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 
 ## はじめに

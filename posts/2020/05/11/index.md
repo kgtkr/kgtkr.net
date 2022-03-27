@@ -5,7 +5,7 @@ update: "2020-05-11T00:28:59.803Z"
 tags: ["procon", Haskell]
 name: abc167-c-haskell
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 
 ## 問題

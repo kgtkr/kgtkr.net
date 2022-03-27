@@ -5,7 +5,7 @@ update: "2018-03-21T14:01:38.000Z"
 tags: ["procon","scala"]
 name: atcoder-10-problems-scala
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 # 初めに
 けんちょんさんの↓の記事の10問をScalaで解いてみました

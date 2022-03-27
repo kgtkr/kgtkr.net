@@ -5,7 +5,7 @@ update: "2017-11-06T12:11:53.000Z"
 tags: ["typescript"]
 name: typescript-import-no-type-definition-modules
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 # 普通に
 普通に読み込むとエラーになります。

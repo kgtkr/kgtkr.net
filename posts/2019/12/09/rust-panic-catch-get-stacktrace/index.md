@@ -5,7 +5,7 @@ update: "2019-12-09T13:07:04.264Z"
 tags: ["rust"]
 name: rust-panic-catch-get-stacktrace
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 
 Rustには`catch_unwind`という関数がありpanicをキャッチすることが出来ます。  

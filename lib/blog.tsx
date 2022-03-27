@@ -14,6 +14,8 @@ const postContext = require.context("../posts", true);
 
 const defaultLang = "ja";
 
+const Lang = z.enum(["en", "ja"]);
+
 const Matter = z
   .object({
     title: z.string(),
@@ -21,8 +23,9 @@ const Matter = z
     update: z.string(),
     tags: z.array(z.string()).default([]),
     name: z.string(),
-    lang: z.enum(["en", "ja"]).default(defaultLang),
+    lang: Lang.default(defaultLang),
     private: z.boolean().default(false),
+    otherLangs: z.array(Lang).default([]),
   })
   .strict();
 

@@ -5,7 +5,7 @@ update: "2018-10-13T09:35:42.000Z"
 tags: ["math"]
 name: proof
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 
 何かツイート流れてきたので

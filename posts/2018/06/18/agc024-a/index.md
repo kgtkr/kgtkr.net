@@ -5,7 +5,7 @@ update: "2018-06-18T12:51:11.000Z"
 tags: ["procon"]
 name: agc024-a
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 
 [AGC024-A Fairness](https://beta.atcoder.jp/contests/agc024/tasks/agc024_a)の考察を頑張って書いたので残したいなと。  

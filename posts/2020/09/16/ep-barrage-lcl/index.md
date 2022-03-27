@@ -5,7 +5,7 @@ update: "2020-09-16T04:30:00.000Z"
 tags: ["typescript", "typelevelprogramming"]
 name: ep-barrage-lcl
 lang: ja
-otherLang: []
+otherLangs: []
 ---
 
 

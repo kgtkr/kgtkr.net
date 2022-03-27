@@ -5,7 +5,7 @@ update: "2019-04-15T07:59:28.242Z"
 tags: ["typescript","typelevelprogramming"]
 name: typescript-typelevelprogramming-error-suppression
 lang: en
-otherLang: ["ja"]
+otherLangs: ["ja"]
 ---
 
 When type level programming, various errors occur.So we need to suppress it.  
