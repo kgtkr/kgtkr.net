@@ -34,7 +34,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps<Props, { tag: string }> = async ({
   params,
 }) => {
-  const posts = getAllPosts();
+  const posts = getAllPosts({});
   const filteredPosts = posts.filter((post) =>
     post.matter.tags.includes(params!.tag),
   );

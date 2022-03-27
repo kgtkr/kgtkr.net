@@ -38,7 +38,7 @@ const Post: NextPage<Props> = ({ post }) => {
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const posts = getAllPosts();
+  const posts = getAllPosts({ includePrivate: true });
   return {
     paths: posts.map((post) => postToPath(post)),
     fallback: false,
@@ -49,7 +49,7 @@ export const getStaticProps: GetStaticProps<
   Props,
   { lang?: string[]; year: string; month: string; day: string; slug: string }
 > = async ({ params }) => {
-  const posts = getAllPosts();
+  const posts = getAllPosts({ includePrivate: true });
   const post = posts.find(
     (post) =>
       postToPath(post) ===

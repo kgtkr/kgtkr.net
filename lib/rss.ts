@@ -20,7 +20,7 @@ export async function generatedRss(): Promise<void> {
     webMaster: "kgtkr",
   });
 
-  const posts = getAllPosts();
+  const posts = getAllPosts({});
 
   posts.forEach((post) => {
     const url = `${origin}${postToPath(post)}`;

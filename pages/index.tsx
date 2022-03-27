@@ -28,7 +28,7 @@ export default Home;
 
 export const getStaticProps: GetStaticProps<Props, {}> = async ({}) => {
   await generatedRss();
-  const posts = getAllPosts();
+  const posts = getAllPosts({});
   return {
     props: {
       posts: posts,

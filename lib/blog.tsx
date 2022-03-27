@@ -53,13 +53,17 @@ export function Content({ post }: { post: Post }): JSX.Element {
   );
 }
 
-export function getAllPosts(): Post[] {
+export function getAllPosts({
+  includePrivate = false,
+}: {
+  includePrivate?: boolean;
+}): Post[] {
   if (allPosts !== null) {
     return allPosts;
   }
 
   const keys = postContext.keys().filter((x) => x.endsWith(".md"));
-
+  console.log(includePrivate);
   allPosts = pipe(
     keys,
     A.map((key) => {
@@ -70,6 +74,7 @@ export function getAllPosts(): Post[] {
         basedir: path.dirname(key),
       };
     }),
+    A.filter((post) => includePrivate || !post.matter.private),
     A.sort(PostOrd),
   );
 
@@ -92,7 +97,7 @@ export function getAllTags(): Tag[] {
     return allTags;
   }
 
-  const posts = getAllPosts();
+  const posts = getAllPosts({});
 
   allTags = pipe(
     posts,
