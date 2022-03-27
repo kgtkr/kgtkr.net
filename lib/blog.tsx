@@ -63,7 +63,6 @@ export function getAllPosts({
   }
 
   const keys = postContext.keys().filter((x) => x.endsWith(".md"));
-  console.log(includePrivate);
   allPosts = pipe(
     keys,
     A.map((key) => {
