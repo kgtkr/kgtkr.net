@@ -6,7 +6,6 @@ tags: ["nextjs", "gatsby"]
 name: blog-migrate-to-nextjs
 lang: ja
 otherLangs: []
-private: true
 ---
 
 # ブログをNext.jsに移行した
