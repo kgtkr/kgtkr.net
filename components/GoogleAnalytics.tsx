@@ -28,7 +28,7 @@ function GoogleAnalytics({}: Props): JSX.Element {
         src={`https://www.googletagmanager.com/gtag/js?id=${gaid}`}
         strategy="afterInteractive"
       />
-      <Script id="ga" defer strategy="afterInteractive">
+      <Script id="ga" strategy="beforeInteractive">
         {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
