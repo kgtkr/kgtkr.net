@@ -28,14 +28,19 @@ function GoogleAnalytics({}: Props): JSX.Element {
         src={`https://www.googletagmanager.com/gtag/js?id=${gaid}`}
         strategy="afterInteractive"
       />
-      <Script id="ga" strategy="beforeInteractive">
-        {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${gaid}');
-        `}
-      </Script>
+      <Script
+        defer
+        id="ga"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '${gaid}');
+    `,
+        }}
+      />
     </>
   );
 }
