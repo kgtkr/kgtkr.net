@@ -30,7 +30,7 @@ function GoogleAnalytics({}: Props): JSX.Element {
       />
       <Script
         defer
-        id="ga"
+        id="kgtkrnet-ga"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
