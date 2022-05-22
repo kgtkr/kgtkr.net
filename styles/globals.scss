@@ -52,7 +52,7 @@ code {
   font-family: 'Source Code Pro', monospace;
 }
 
-.gatsby-remark-code-filename {
+.remark-code-filename {
   margin-bottom: -0.6rem;
   padding: 0.5em 1em;
 
@@ -61,8 +61,4 @@ code {
 
   border-top-left-radius: 0.3em;
   border-top-right-radius: 0.3em;
-}
-
-h4 {
-  text-transform: none !important;
 }
