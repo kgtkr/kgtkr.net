@@ -27,6 +27,18 @@ const Post: NextPage<Props> = ({ post }) => {
           content={markdownToPlainText(post.markdown).substring(0, 140)}
         />
       </Head>
+      {post.matter.private ? (
+        <div
+          style={{
+            border: "1px solid #000",
+            padding: "1em",
+            margin: "1em",
+            borderRadius: "1em",
+          }}
+        >
+          この記事は限定公開です.
+        </div>
+      ) : null}
       <h1>{post.matter.title}</h1>
       <div>{fns.format(new Date(post.matter.date), "yyyy/MM/dd")}</div>
       <div>
