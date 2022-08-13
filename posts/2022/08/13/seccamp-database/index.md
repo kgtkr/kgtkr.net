@@ -1,7 +1,7 @@
 ---
 title: セキュリティキャンプ2022データベースゼミに参加してきました
-date: "2022-08-12T08:16:25.254Z"
-update: "2022-08-12T08:16:25.254Z"
+date: "2022-08-13T11:56:20.752Z"
+update: "2022-08-13T11:56:20.752Z"
 tags: ["database", "rust"]
 name: seccamp-database
 lang: ja
