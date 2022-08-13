@@ -6,6 +6,7 @@ tags: ["database", "rust"]
 name: seccamp-database
 lang: ja
 otherLangs: []
+private: true
 ---
 ## はじめに
 8/8から8/12に行われたセキュリティキャンプ2022のデータベースゼミに参加してきました. このゼミでは, データベースの中でもトランザクションを中心に学び, 実装しました. 講師の星野さん([@starpoz](https://twitter.com/starpoz)), ありがとうございました.
