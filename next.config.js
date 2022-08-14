@@ -9,4 +9,5 @@ module.exports = {
     return config;
   },
   staticPageGenerationTimeout: 180,
+  output: "standalone",
 };

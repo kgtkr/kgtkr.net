@@ -1,17 +1,24 @@
-FROM node:16-alpine
+FROM node:16 as builder
 
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-
 RUN npm run build
 
+FROM node:16-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/next.config.js /app
+COPY --from=builder /app/.next/static /app/.next/static
+COPY --from=builder /app/public /app/public
+
+COPY --from=builder /app/.next/standalone /app
+
 EXPOSE 3000
+ENV PORT=3000 NODE_ENV=production
 
-ENV PORT 3000
-
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
