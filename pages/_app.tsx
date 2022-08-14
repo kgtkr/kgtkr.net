@@ -21,7 +21,9 @@ function App({ Component, pageProps, router }: AppProps) {
         <Link href="/">Tkr Blog</Link>
       </header>
       <Component {...pageProps} />
-      <footer>© {new Date().getFullYear()}. All rights reserved.</footer>
+      <footer style={{ marginTop: 32 }}>
+        <Link href="/privacy-policy">プライバシーポリシー</Link>
+      </footer>
     </div>
   );
 }
