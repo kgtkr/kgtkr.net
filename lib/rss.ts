@@ -27,7 +27,7 @@ export async function generatedRss(): Promise<void> {
     feed.item({
       title: post.matter.title,
       url,
-      description: markdownToPlainText(post.markdown).substring(0, 280),
+      description: markdownToPlainText(post.markdown).substring(0, 480),
       date: new Date(post.matter.date),
       guid: url,
       author: "kgtkr",
