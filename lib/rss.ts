@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import RSS from "rss";
 import { getAllPosts, postToPath } from "./blog";
-import { markdownToHtml } from "./markdown";
+import { markdownToPlainText } from "./markdown";
 
 export async function generatedRss(): Promise<void> {
   const origin = "https://kgtkr.net";
@@ -27,7 +27,7 @@ export async function generatedRss(): Promise<void> {
     feed.item({
       title: post.matter.title,
       url,
-      description: markdownToHtml(post.markdown),
+      description: markdownToPlainText(post.markdown).substring(0, 280),
       date: new Date(post.matter.date),
       guid: url,
       author: "kgtkr",
