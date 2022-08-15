@@ -36,9 +36,11 @@ const Home: NextPage<Props> = (props) => {
         ) : null}
         {Array.from({ length: props.totalPages }, (_, i) =>
           i === props.currentPage ? (
-            <span>{i + 1}</span>
+            <span key={i}>{i + 1}</span>
           ) : (
-            <Link href={pageToPath(i)}>{i + 1}</Link>
+            <Link key={i} href={pageToPath(i)}>
+              {i + 1}
+            </Link>
           ),
         )}
         {props.currentPage < props.totalPages - 1 ? (
