@@ -21,7 +21,9 @@ function App({ Component, pageProps, router }: AppProps) {
         <Link href="/">Tkr Blog</Link>
       </header>
       <Component {...pageProps} />
-      <footer style={{ marginTop: 32 }}>
+      <footer
+        style={{ marginTop: 32, paddingTop: 16, borderTop: "1px solid #bbb" }}
+      >
         <Link href="/privacy-policy">プライバシーポリシー</Link>
       </footer>
     </div>
