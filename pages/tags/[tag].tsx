@@ -2,11 +2,12 @@ import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Link from "next/link";
 import React from "react";
 import PostList from "../../components/PostList";
+import { PostListItemPost } from "../../components/PostListItem";
 import Title from "../../components/Title";
 import { Post, getAllTags, getAllPosts } from "../../lib/blog";
 
 type Props = {
-  posts: Post[];
+  posts: PostListItemPost[];
   tag: string;
 };
 
@@ -35,9 +36,9 @@ export const getStaticProps: GetStaticProps<Props, { tag: string }> = async ({
   params,
 }) => {
   const posts = getAllPosts({});
-  const filteredPosts = posts.filter((post) =>
-    post.matter.tags.includes(params!.tag),
-  );
+  const filteredPosts = posts
+    .filter((post) => post.matter.tags.includes(params!.tag))
+    .map((post) => PostListItemPost(post));
   return {
     props: {
       posts: filteredPosts,

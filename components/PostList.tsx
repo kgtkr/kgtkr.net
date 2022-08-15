@@ -1,17 +1,17 @@
 import React from "react";
 import { Post, postToPath } from "../lib/blog";
-import PostListItem from "./PostListItem";
+import PostListItem, { PostListItemPost } from "./PostListItem";
 import styles from "./PostList.module.scss";
 
-type Props = {
-  posts: Post[];
+export type Props = {
+  posts: PostListItemPost[];
 };
 
 function PostList({ posts }: Props) {
   return (
     <div>
       {posts.map((post) => (
-        <div className={styles.item} key={postToPath(post)}>
+        <div className={styles.item} key={post.path}>
           <PostListItem post={post}></PostListItem>
         </div>
       ))}
