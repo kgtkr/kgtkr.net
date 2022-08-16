@@ -7,13 +7,12 @@ import { getAllPosts } from "../lib/blog";
 import PostList from "../components/PostList";
 import { generatedRss } from "../lib/rss";
 import { PostListItemPost } from "../components/PostListItem";
-import styles from "./index.module.scss";
+import withPage from "../components/withPage";
 
-const pageSize = 10;
-
-function pageToPath(page: number): string {
-  return page === 0 ? "/" : `/page/${page + 1}`;
-}
+const pagination = withPage<PostListItemPost>({
+  pageSize: 10,
+  pageToPath: (page) => (page === 0 ? "/" : `/page/${page + 1}`),
+});
 
 type Props = {
   posts: PostListItemPost[];
@@ -30,22 +29,11 @@ const Home: NextPage<Props> = (props) => {
         <Link href="/rss.xml">RSS</Link>
       </div>
       <PostList posts={props.posts} />
-      <div className={styles.pages}>
-        {props.currentPage > 0 ? (
-          <Link href={pageToPath(props.currentPage - 1)}>Prev</Link>
-        ) : null}
-        {Array.from({ length: props.totalPages }, (_, i) =>
-          i === props.currentPage ? (
-            <span key={i}>{i + 1}</span>
-          ) : (
-            <Link key={i} href={pageToPath(i)}>
-              {i + 1}
-            </Link>
-          ),
-        )}
-        {props.currentPage < props.totalPages - 1 ? (
-          <Link href={pageToPath(props.currentPage + 1)}>Next</Link>
-        ) : null}
+      <div style={{ marginTop: 28 }}>
+        {pagination.paginationView({
+          currentPage: props.currentPage,
+          totalPages: props.totalPages,
+        })}
       </div>
     </div>
   );
@@ -54,12 +42,10 @@ const Home: NextPage<Props> = (props) => {
 export default Home;
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const posts = getAllPosts({});
+  const posts = getAllPosts({}).map((post) => PostListItemPost(post));
 
   return {
-    paths: Array.from({ length: Math.ceil(posts.length / pageSize) }, (_, i) =>
-      pageToPath(i),
-    ),
+    paths: pagination.getStaticPaths(posts),
     fallback: false,
   };
 };
@@ -70,13 +56,16 @@ export const getStaticProps: GetStaticProps<Props, { page?: string[] }> =
     if (page === 0) {
       await generatedRss();
     }
-    const allPosts = getAllPosts({});
-    const posts = allPosts.slice(page * pageSize, (page + 1) * pageSize);
+    const allPosts = getAllPosts({}).map((post) => PostListItemPost(post));
+    const { items: posts, totalPages } = pagination.getStaticProps(allPosts, {
+      page,
+    });
+
     return {
       props: {
-        posts: posts.map((post) => PostListItemPost(post)),
+        posts,
         currentPage: page,
-        totalPages: Math.ceil(allPosts.length / pageSize),
+        totalPages,
       },
     };
   };
