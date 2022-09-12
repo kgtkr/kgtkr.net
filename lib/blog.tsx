@@ -25,6 +25,7 @@ const Matter = z
     name: z.string(),
     lang: Lang.default(defaultLang),
     private: z.boolean().default(false),
+    showPrivateMessage: z.boolean().default(true),
     otherLangs: z.array(Lang).default([]),
   })
   .strict();

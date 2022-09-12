@@ -27,7 +27,7 @@ const Post: NextPage<Props> = ({ post }) => {
           content={markdownToPlainText(post.markdown).substring(0, 140)}
         />
       </Head>
-      {post.matter.private ? (
+      {post.matter.private && post.matter.showPrivateMessage ? (
         <div
           style={{
             border: "1px solid #000",
