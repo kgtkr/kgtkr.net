@@ -12,7 +12,8 @@ otherLangs: []
 
 ## 準備
 
-```ts:test.ts
+test.ts
+```ts
 export type TypeEq<A, B> = (<T>() => T extends A ? 1 : 2) extends (<
   T
 >() => T extends B ? 1 : 2)
