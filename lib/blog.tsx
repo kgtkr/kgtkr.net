@@ -59,26 +59,23 @@ export function getAllPosts({
 }: {
   includePrivate?: boolean;
 }): Post[] {
-  if (allPosts !== null) {
-    return allPosts;
+  if (allPosts === null) {
+    const keys = postContext.keys().filter((x) => x.endsWith(".md"));
+    allPosts = pipe(
+      keys,
+      A.map((key) => {
+        const { data, content } = matter(postContext(key).default);
+        return {
+          matter: Matter.parse(data),
+          markdown: content,
+          basedir: path.dirname(key),
+        };
+      }),
+      A.sort(PostOrd),
+    );
   }
 
-  const keys = postContext.keys().filter((x) => x.endsWith(".md"));
-  allPosts = pipe(
-    keys,
-    A.map((key) => {
-      const { data, content } = matter(postContext(key).default);
-      return {
-        matter: Matter.parse(data),
-        markdown: content,
-        basedir: path.dirname(key),
-      };
-    }),
-    A.filter((post) => includePrivate || !post.matter.private),
-    A.sort(PostOrd),
-  );
-
-  return allPosts;
+  return allPosts.filter((post) => includePrivate || !post.matter.private);
 }
 
 export type Tag = {
