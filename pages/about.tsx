@@ -70,7 +70,7 @@ const About: NextPage = () => {
         <tbody>
           <tr>
             <td>Email</td>
-            <td>contact@kgtkr.net</td>
+            <td>me@kgtkr.net</td>
           </tr>
           <tr>
             <td>Discord</td>
