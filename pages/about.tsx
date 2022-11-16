@@ -57,7 +57,7 @@ const About: NextPage = () => {
           <Link href="https://qiita.com/kgtkr">Qiita</Link>
         </li>
         <li>
-          <Link href="https://mstdn.kgtkr.net/@tech">Mastodon</Link>
+          <Link href="https://mstdn.kgtkr.net/@me">Mastodon</Link>
         </li>
         <li>
           <Link href="https://atcoder.jp/users/kgtkr">
