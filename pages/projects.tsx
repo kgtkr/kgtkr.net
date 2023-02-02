@@ -19,6 +19,18 @@ const Projects: NextPage = () => {
             </Link>
           </div>
         </li>
+        <li>
+          <Link href="tegaki.fun">tegaki.fun</Link>
+          <div>
+            研究室で作った手書き風の文章画像を生成するサービス.{" "}
+            <Link href="https://github.com/nkmr-lab/average-character-cloud-frontend">
+              フロントエンド
+            </Link>{" "}
+            <Link href="https://github.com/nkmr-lab/average-character-cloud-backend">
+              バックエンド
+            </Link>
+          </div>
+        </li>
       </ul>
       <h2>2021〜</h2>
       <ul>
