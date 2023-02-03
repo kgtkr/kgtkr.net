@@ -26,7 +26,7 @@ const Home: NextPage<Props> = (props) => {
       <Title />
       <Bio />
       <div style={{ marginTop: 10 }}>
-        <Link href="/rss.xml">RSS</Link>
+        <a href="/rss.xml">RSS</a>
       </div>
       <PostList posts={props.posts} />
       <div style={{ marginTop: 28 }}>
@@ -50,22 +50,24 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps<Props, { page?: string[] }> =
-  async ({ params }) => {
-    const page = Number(params?.page?.[1] ?? 1) - 1;
-    if (page === 0) {
-      await generatedRss();
-    }
-    const allPosts = getAllPosts({}).map((post) => PostListItemPost(post));
-    const { items: posts, totalPages } = pagination.getStaticProps(allPosts, {
-      page,
-    });
+export const getStaticProps: GetStaticProps<
+  Props,
+  { page?: string[] }
+> = async ({ params }) => {
+  const page = Number(params?.page?.[1] ?? 1) - 1;
+  if (page === 0) {
+    await generatedRss();
+  }
+  const allPosts = getAllPosts({}).map((post) => PostListItemPost(post));
+  const { items: posts, totalPages } = pagination.getStaticProps(allPosts, {
+    page,
+  });
 
-    return {
-      props: {
-        posts,
-        currentPage: page,
-        totalPages,
-      },
-    };
+  return {
+    props: {
+      posts,
+      currentPage: page,
+      totalPages,
+    },
   };
+};

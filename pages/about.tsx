@@ -48,23 +48,21 @@ const About: NextPage = () => {
       <h2>Accounts</h2>
       <ul>
         <li>
-          <Link href="https://github.com/kgtkr">GitHub</Link>
+          <a href="https://github.com/kgtkr">GitHub</a>
         </li>
         <li>
-          <Link href="https://twitter.com/kgtkr">Twitter</Link>
-        </li>
-        <li>
-          <Link href="https://qiita.com/kgtkr">Qiita</Link>
-        </li>
-        <li>
-          <Link rel="me" href="https://mstdn.kgtkr.net/@me">
+          <a rel="me" href="https://mstdn.kgtkr.net/@me">
             Mastodon
-          </Link>
+          </a>
         </li>
         <li>
-          <Link href="https://atcoder.jp/users/kgtkr">
-            AtCoder(Highest:1249, 水)
-          </Link>
+          <a href="https://twitter.com/kgtkr">Twitter</a>
+        </li>
+        <li>
+          <a href="https://qiita.com/kgtkr">Qiita</a>
+        </li>
+        <li>
+          <a href="https://atcoder.jp/users/kgtkr">AtCoder(Highest:1249, 水)</a>
         </li>
       </ul>
       <h2>Contacts</h2>
@@ -85,9 +83,9 @@ const About: NextPage = () => {
           <tr>
             <td>PGP Public Key</td>
             <td>
-              <Link href="/B30DBE9381E03D5DF30188C81F6EB9519F573241.txt">
+              <a href="/B30DBE9381E03D5DF30188C81F6EB9519F573241.txt">
                 B30D BE93 81E0 3D5D F301 88C8 1F6E B951 9F57 3241
-              </Link>
+              </a>
             </td>
           </tr>
         </tbody>
@@ -109,7 +107,7 @@ const About: NextPage = () => {
       <p>
         ソースコードはGitHubで公開しています
         <div>
-          <Link href="https://github.com/kgtkr/kgtkr.net">kgtkr/kgtkr.net</Link>
+          <a href="https://github.com/kgtkr/kgtkr.net">kgtkr/kgtkr.net</a>
         </div>
       </p>
     </div>
