@@ -74,7 +74,7 @@ const About: NextPage = () => {
           </tr>
           <tr>
             <td>Discord</td>
-            <td>kgtkr#9999</td>
+            <td>kgtkr</td>
           </tr>
           <tr>
             <td>Switch FC</td>
