@@ -39,7 +39,15 @@ otherLangs: []
 」](/blog/2022/02/10/sqldef-for-generate-migration)を使っていたり、
 `serde-env` で[環境変数のデコードをしていたり](https://github.com/nkmr-lab/average-character-cloud-backend/blob/7f3a6df495985da7932ebdd881529db529715e72/src/app_config.rs)(これに使うためにenum対応PRを投げたりした)まあここらへんは便利です。
 
-## エラー処理
+### API設計
+フロントエンドでRelayを使いたいので[GraphQL Server Specification
+](https://relay.dev/docs/guides/graphql-server-specification/)を満たすようなAPIにする必要があります。
+
+まず、`id` フィールドはグローバルに(異なる型であっても)一意でなければいけません。またbase64でエンコードすることが推奨されているので `Hoge` 型の `xxx` というidであれば `Hoge:xxx` をbase64エンコードしたものにしました。しかし、`xxx` が欲しい場合もあるので `id` フィールドはgraphQLのidという扱いにし、ドメイン層のidである `xxx` は `hogeId` というフィールドに別に入れています。
+
+また、mutationのエラーはGraphQLのエラーではなくエラー型の配列として返した方がフロントエンドから扱いやすいです(Goのような感じ)。あとは `Query` 型にはとりあえず `query: Query!` を定義しておきましょう。これがあると `Query` 型の `fragment` を定義できるようになるなどフロントエンド側で嬉しいことがあります。
+
+### エラー処理
 juniperのエラー処理について便利な方法を紹介しておきます。APIのエラーは大きくバリデーションエラーのようなユーザの不正な入力が原因のエラーと、DB接続エラーのような内部エラーに分けられます。後者はエラーログに記録する必要がありますし、ユーザに詳細メッセージを返すことはセキュリティ上適切ではありません。juniperでは、`IntoFieldError` を実装した独自のエラー型を定義できるので、これを上手いこと扱える仕組みが欲しいです。[ソースコード](https://github.com/nkmr-lab/average-character-cloud-backend/blob/7f3a6df495985da7932ebdd881529db529715e72/src/graphql/common.rs#L14)
 
 そこで、`GraphqlUserError` と `ApiError` という2つの `anyhow::Error` のnewtypeを用意します。`GraphqlUserError` は `Error` トレイトが実装してあるので `anyhow::Error` に変換できます。こうすることで `anyhow::Error->GraphqlUserError->anyhow::Error` という変換が可能になり、これは `GraphqlUserError`であるというマーカの役割になります。今回は `GraphqlUserError` というマーカがついていればユーザが原因のエラー、そうでなければ内部エラーという扱いにしました。
@@ -71,3 +79,6 @@ query {
 この時 `posts` は暗黙の引数(?)として親の`user`を受け取ります。この場合の親の`user`を `Key` と呼びます。親の`user`はいくつになるか分からないので、単純な実装だとN+1回のSQLを投げてしまうというのがN+1問題です。また、明示的なひきすうとして`filter` も受け取ります。この場合の`filter`を `Param` と呼びます。`filter` は親の`user`に依存することはないので、このパラメータのパターン数は高々クエリの長さに比例します。よって、異なるfilterに対して複数回のSQLを投げても大きな問題にはなりませんし、ここまでまとめようとするとSQLが複雑になりすぎてしまいます。
 
 以上の理由から、`Param` が異なる場合はSQLを別々に投げたいですし、そうでなければ `Key` が異なっていてもなるべくSQLをまとめたいです。そこで `Param` ごとに `Loader` を自動的に作って、いい感じにクエリをまとめてくれるような型が `DataloaderWithParams` です。
+
+## フロントエンド
+フロントエンドはReact / Recoil/ 
