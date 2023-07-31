@@ -81,4 +81,27 @@ query {
 以上の理由から、`Param` が異なる場合はSQLを別々に投げたいですし、そうでなければ `Key` が異なっていてもなるべくSQLをまとめたいです。そこで `Param` ごとに `Loader` を自動的に作って、いい感じにクエリをまとめてくれるような型が `DataloaderWithParams` です。
 
 ## フロントエンド
-フロントエンドはReact / Recoil/ 
+フロントエンドは言語はTypeScriptでReact / Recoil(状態管理ライブラリ) / Relay(GraphQLライブラリ)あたりを使っています。全体的に使いやすかったのですがRecoil最近更新があまりされているようなので少し不安ですね。
+
+### Fragment Colocation
+GraphQLのFragment Colocationというものがとても便利でした。解説記事が沢山あるのでここでは詳細は書きませんが、簡単にいうと、コンポーネントごとに欲しいデータをfragmentとして定義しておき、それをまとめてルートのコンポーネントでfetchすることができるというものです。これによってデータを一回のクエリでfetchすることができます。特にRelayでは他のファイルで宣言したfragmentのプロパティにはアクセスできないという厳密なカプセル化がされているので、カプセル化とデータをまとめてfetchしたいという2つの両立が可能です。
+
+### recoil-relay
+ほとんど更新がされていないのとpaginationに対応していなかったり、[データの再フェッチができない](https://github.com/facebookexperimental/Recoil/issues/2127)といった問題があるので、公式の組み合わせだと思って使うと痛い目にあいます。このライブラリがなくてもrecoilと組み合わせることはできるので、基本的に使わなくていいでしょう。
+
+### キャッシュの更新
+![Staleness of Data](https://relay.dev/docs/next/guided-tour/reusing-cached-data/staleness-of-data/)あたりを読むとデータの再フェッチの方法が分かると思います。
+
+単一のデータであればドキュメント通りですが、複数のデータの(例えば `user` が持っている `posts`)配列が更新された場合どうするかという問題があります。これは例えば `user` 自体を `invalidateRecord` してしまうのが手っ取り早いです。こうすることで `user` に属する `posts` も再フェッチできます(当然 `useSubscribeToInvalidationState` で `user.id` を監視する必要がありますが)
+
+### SuspenseのPromiseの管理をrecoilに任せる、selectorFamilyにRecoilValueを渡す
+Reactの `Suspense` に対応したデータロード関数を作るにはReact外でのグローバルなデータ管理の仕組みが必要です。例えばRelayだったり、Recoilのasync selectorは特に何も考えなくてもこれを行なってくれますが、独自で作ろうとすると単純な実装であればともかく、メモリリークを防ぐといったことまで考慮するととても大変です。
+
+今回は、文字を合成処理を全てフロントエンドでやっている関係で(本来はバックエンドでしてキャッシュするべきだが平均文字ライブラリはTSだが、バックエンドはRustであるという問題があり、ここだけマイクロサービスにするのも手間だしで手を抜いた)パフォーマンス上の理由から(数値計算をかなりしているのでCPUを食う)WebWorkerを使っているのですが、この処理をSuspenseに対応させるのにどうしようかという問題がありました。
+
+そこで汎用的なPromiseの管理場所としてのrecoilの `selectorFamily` の出番です。`selectorFamily` はパラメータを受け取ることができるので、何も考えずにasync関数を定義するだけで勝手にグローバルなPromiseの管理をしてくれます。便利ですね。
+
+ところで `selectorFamily` は `Map<Parameter, Selector>` のようなものを作る関数なので、引数のパターン数が多すぎるとメモリ効率が悪いです。また、パラメータに使える型にはシリアライズ可能である型である必要があるという制限があります。そこで、`selectorFamily`に`RecoilValue` (atomやselectorの親の型)を渡せるという仕様を利用します。こうすることで、渡せる値に制限がなくなり、またMapの要素数の増加を抑えることができます。
+
+### useTransition
+画像生成処理は `useTransition` を上手く使うことでパラメータ変更による再生成時のローディング表示を抑えることができ、使いやすくなりました[ソースコード](https://github.com/nkmr-lab/average-character-cloud-frontend/blob/80f3ac7de7a92a4822864d43f2e1142b78b0ad60/packages/client/src/pages/Generate.tsx)。スライダーの更新などは `react-use` の `useDebounce` を使って更新頻度を下げることでCPU負荷を下げる必要がありますが、この関数の第一引数に渡すコールバックで `startTransition` を使うことで上手く組み合わせることができます。
