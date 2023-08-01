@@ -1,7 +1,7 @@
 ---
 title: 手書き風画像生成Webサービスを大学で作った話
-date: "2023-07-31T09:18:07.150Z"
-update: "2023-07-31T09:18:07.150Z"
+date: "2023-08-01T10:23:44.242Z"
+update: "2023-08-01T10:23:44.242Z"
 tags: ["university","webdevelopment","tegakifun","rust","typescript","react","graphql","actix-web","recoil","relay","sqlx","juniper"]
 name: tegakifun
 lang: ja
