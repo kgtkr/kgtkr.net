@@ -17,6 +17,7 @@ import { toText } from "hast-util-to-text";
 import haskell from "highlight.js/lib/languages/haskell";
 import scala from "highlight.js/lib/languages/scala";
 import ocaml from "highlight.js/lib/languages/ocaml";
+import graphql from "highlight.js/lib/languages/graphql";
 import { toHtml } from "hast-util-to-html";
 import remarkGfm from "remark-gfm";
 
@@ -37,7 +38,7 @@ function markdownProcessor(): Processor<
 function rehypeProcessor(): Processor<Mdast.Root, Hast.Root, Hast.Root, void> {
   return markdownProcessor()
     .use(remarkRehype)
-    .use(rehypeHighlight, { languages: { haskell, scala, ocaml } })
+    .use(rehypeHighlight, { languages: { haskell, scala, ocaml, graphql } })
     .use(rehypeKatex);
 }
 
