@@ -8,8 +8,8 @@ export async function generatedRss(): Promise<void> {
   const date = new Date();
 
   const feed = new RSS({
-    title: "Tkr Blog",
-    description: "Tkr Blog",
+    title: "Kgtkr's Blog",
+    description: "Kgtkr's Blog",
     feed_url: `${origin}/rss.xml`,
     site_url: origin,
     language: "ja",

@@ -19,7 +19,7 @@ function App({ Component, pageProps, router }: AppProps) {
           router.asPath === "/" ? styles.homeHeader : ""
         }`}
       >
-        <Link href="/">Tkr Blog</Link>
+        <Link href="/">Kgtkr's Blog</Link>
       </header>
       <Component {...pageProps} />
       <footer className={styles.footer}>
