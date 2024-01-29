@@ -62,7 +62,7 @@ const About: NextPage = () => {
           <a href="https://qiita.com/kgtkr">Qiita</a>
         </li>
         <li>
-          <a href="https://atcoder.jp/users/kgtkr">AtCoder(Highest:1249, 水)</a>
+          <a href="https://atcoder.jp/users/kgtkr">AtCoder</a>
         </li>
       </ul>
       <h2>Contacts</h2>
