@@ -48,7 +48,7 @@
     "@types/react": "^18.0.19",
     "@types/rss": "^0.0.29",
     "eslint": "^8.23.1",
-    "eslint-config-next": "^12.3.0",
+    "eslint-config-next": "^13.1.1",
     "eslint-config-prettier": "^8.5.0",
     "prettier": "^2.7.1",
     "textlint": "^12.2.1",
