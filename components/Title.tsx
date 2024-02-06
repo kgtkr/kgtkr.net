@@ -8,7 +8,7 @@ type Props = {
 function Title({ title }: Props) {
   return (
     <Head>
-      <title>{title !== undefined ? `${title} | ` : ""}Kgtkr's Blog</title>
+      <title>{title !== undefined ? `${title} | ` : ""}Kgtkr&apos;s Blog</title>
       {title !== undefined ? (
         <meta property="og:title" content={title} />
       ) : null}
