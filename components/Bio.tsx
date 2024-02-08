@@ -32,8 +32,10 @@ const Bio: NextPage = () => {
         </div>
         <div>
           <SocialIcon
-            url="https://twitter.com/kgtkr"
+            url="https://mstdn.kgtkr.net/@me"
+            network="mastodon"
             style={{ height: 25, width: 25, marginRight: 5 }}
+            bgColor="#523bc4"
           />
           <SocialIcon
             url="https://github.com/kgtkr"

@@ -56,6 +56,11 @@ const About: NextPage = () => {
           </a>
         </li>
         <li>
+          <a rel="me" href="https://bsky.app/profile/kgtkr.net">
+            Bluesky
+          </a>
+        </li>
+        <li>
           <a href="https://twitter.com/kgtkr">Twitter</a>
         </li>
         <li>
