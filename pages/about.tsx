@@ -99,6 +99,10 @@ const About: NextPage = () => {
       <table>
         <tbody>
           <tr>
+            <td>2016.04-2019.03</td>
+            <td>福岡県立博多青松高校 情報科学科</td>
+          </tr>
+          <tr>
             <td>2019.05-現在</td>
             <td>HERP, Inc.(エンジニアインターン)</td>
           </tr>
