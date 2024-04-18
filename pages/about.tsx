@@ -93,6 +93,14 @@ const About: NextPage = () => {
               </a>
             </td>
           </tr>
+          <tr>
+            <td>SSH Public Key</td>
+            <td>
+              <a href="/id_rsa.pub.txt">
+                SHA256:tASchqIm+dF7EPSdNY/13GgdXh4njVLXSe1HtVG71Cg
+              </a>
+            </td>
+          </tr>
         </tbody>
       </table>
       <h2>History</h2>
