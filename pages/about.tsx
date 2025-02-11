@@ -88,7 +88,7 @@ const About: NextPage = () => {
           <tr>
             <td>PGP Public Key</td>
             <td>
-              <a href="/.well-known/openpgpkey/hu/s8y7oh5xrdpu9psba3i5ntk64ohouhga?l=me">
+              <a href="/B30DBE9381E03D5DF30188C81F6EB9519F573241.txt">
                 B30D BE93 81E0 3D5D F301 88C8 1F6E B951 9F57 3241
               </a>
             </td>
