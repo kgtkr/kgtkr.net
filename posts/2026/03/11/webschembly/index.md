@@ -150,7 +150,7 @@ return
 
 また、この時BB2の呼び出し元がまだ一度も生成されていない場合、`$g_bb2` をStubで初期化する必要があります。
 
-
+```
 (func $bb2_stub (param $y i32) (result i32)
   i32.const 2 ;; bb_id
   ;; その他特殊化に関する型情報なども渡す
