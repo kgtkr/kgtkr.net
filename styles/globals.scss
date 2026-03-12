@@ -36,18 +36,6 @@ a:hover {
   text-decoration: underline;
 }
 
-li {
-  list-style: none;
-  margin-bottom: 0.5rem;
-}
-
-li::before {
-  content: '-';
-  color: #999;
-  position: absolute;
-  margin-left: -1rem;
-}
-
 code {
   font-family: 'Source Code Pro', monospace;
 }
@@ -78,4 +66,24 @@ h2 {
 blockquote {
   border-left: 4px solid #ddd;
   padding-left: 0.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+ul li {
+  list-style: none;
+  position: relative;
+}
+
+ul li::before {
+  content: '-';
+  color: #999;
+  position: absolute;
+  margin-left: -1rem;
+}
+
+ol li {
+  list-style: decimal;
 }
