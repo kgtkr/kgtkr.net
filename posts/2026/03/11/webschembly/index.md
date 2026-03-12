@@ -22,16 +22,17 @@ otherLangs: []
 修論はそのうち大学のリポジトリで公開されたらリンク追加します。
 
 ## 背景・モチベーション
-C/Rustなどの静的型付け言語は、AOTコンパイラによってWasmに変換することで、Webブラウザ上で高速に実行することができるようになっています。
-一方で動的型付け言語は、インタプリタをWasmにコンパイルして実行したり、動的型情報を使わないAOTコンパイラによってWasmに変換して実行することが一般的であり、性能に限界があります。
+C / Rustなどの静的型付け言語は、AOTコンパイラによってWasmに変換することで、Webブラウザ上で高速に実行することができるようになっています。
+一方で動的型付け言語は、インタプリタをWasmにコンパイルして実行したり、AOTコンパイラによってWasmに変換して実行することが一般的であり、性能に限界があります。
 そこで、Webブラウザ上で高速に動的言語を実行するために、Wasmを生成するSchemeのJIT処理系を実装しました。
 
 ## 基本方針
 * R5RS準拠を目指す
   * 必要最低限の機能だけを実装してJITのほうに力を入れたのでかなりの機能が未実装…。継続以外で実装が無理な機能はなさそうだけど継続はどうしようという状況です
 * Wasm GCを使う
-* ランタイムはRust+Watで書く
+* ランタイムの実装言語はRust / Wat / JS
 * YJITなどで採用されているBasic Block Versioning (BBV)というJIT手法を使う
+* 中間表現としてSSAの独自IRを使う
 
 ### Basic Block Versioning
 BBVとは基本ブロックの入力変数の型によって基本ブロックを複製していくJIT手法です。
@@ -65,3 +66,101 @@ BBVでは「実際に実行されたBBのみを入力変数の型で特殊化し
 
 こうすることで最も頻繁に実行される部分については、動的型チェックなしでループが回るようになります。
 
+## WasmでBBV
+BBVの実装には動的なコード生成と、生成コードに遷移するために任意アドレスへのジャンプが必要ですが、Wasm単体ではどちらも機能がありません。
+
+### 動的なコード生成
+動的なコード生成については過去記事でも解説したようにJSと組み合わせることで簡単に実装できます。これは以下のような関数をWasmにimportし、これをランタイムから呼び出すことにより可能です。
+
+```
+js_instantiate: (bufPtr, bufSize) => {
+  const buf = new Uint8Array(
+    runtimeInstance.exports.memory.buffer,
+    bufPtr,
+    bufSize,
+  );
+
+  const instance = new WebAssembly.Instance(
+    new WebAssembly.Module(buf),
+    importObject,
+  );
+
+  instance.exports.start();
+}
+```
+
+### 生成コードへの遷移
+BBVでは基本ブロック単位でコンパイルを行い、生成コードに遷移する方法が必要なので以下の方法をこれを実装します。
+
+1. 基本ブロックをWasm関数として生成
+   * BBの入力変数を引数として受け取るようなWasm関数を生成します。
+2. 生成関数を含むWasmモジュールのエントリーポイントで、BBに対応する関数のfuncrefをグローバル変数にセットする
+3. BBに遷移する側は対応するグローバル変数を読み出し、BBの入力変数を全て引数としてスタックに積み、末尾間接関数呼び出し命令 `return_call_ref` によって生成コードに遷移する
+
+例えば以下のような処理を考えます。
+
+```
+;; [BB1] 条件分岐 (入力変数: $x, $y)
+;; if (!x) { ... }
+local.get $x
+i32.eqz
+if
+  ;; [BB2] Then節 (入力変数: $y)
+  ;; y = y + 1
+  local.get $y
+  i32.const 1
+  i32.add
+  local.set $y
+end
+;; [BB3] Merge地点 (入力変数: $y)
+;; y = y * 2
+local.get $y
+i32.const 2
+i32.mul
+local.set $y
+
+;; return y
+local.get $y
+return
+```
+
+これのBB1を生成する場合以下のようになります。
+
+```
+(func $bb1 (param $x i32) (param $y i32) (result i32)
+  local.get $x
+  i32.eqz
+  if
+    ;; BB2 (Then) へ遷移
+    ;; 入力変数 y を引数として渡す
+    local.get $y
+    global.get $g_bb2
+    ref.cast (ref null $i32_to_i32)
+    return_call_ref (type $i32_to_i32)
+  else
+    ;; BB3 (Merge) へ遷移
+    ;; 入力変数 y を引数として渡す
+    local.get $y
+    global.get $g_bb3
+    ref.cast (ref null $i32_to_i32)
+    return_call_ref (type $i32_to_i32)
+  end
+)
+```
+
+また、この時BB2の呼び出し元がまだ一度も生成されていない場合、`$g_bb2` をStubで初期化する必要があります。
+
+
+(func $bb2_stub (param $y i32) (result i32)
+  i32.const 2 ;; bb_id
+  ;; その他特殊化に関する型情報なども渡す
+  call $compile_bb ;; BBに対応するモジュールを生成し、インスタンス化するコンパイラの関数
+  ;; $compile_bbを呼ぶとグローバル変数 $g_bb2 が $bb2_stub から $bb2 に置き換わるので呼び出す
+  local.get $y
+  global.get $g_bb2
+  ref.cast (ref null $i32_to_i32)
+  return_call_ref (type $i32_to_i32)
+)
+```
+
+そしてこのモジュールのエントリーポイントでは `$g_bb1` を `$bb1` に、 `$g_bb2` を `bb2_stub` に設定します。
