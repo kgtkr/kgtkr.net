@@ -6,7 +6,6 @@ tags: ["webassembly", "languageprocessor", "rust", "webschembly", "university"]
 name: webassembly
 lang: ja
 otherLangs: []
-private: true
 ---
 
 ## はじめに
