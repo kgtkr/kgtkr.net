@@ -88,6 +88,12 @@ js_instantiate: (bufPtr, bufSize) => {
 }
 ```
 
+ソースコード:
+* [js_instantiate (JS Runtime)](https://github.com/kgtkr/webschembly/blob/5671c31d8994504d2165053a94b906db84b02776/webschembly-js/src/runtime.ts#L108)
+  * Compiler Runtimeから呼び出されます
+* [instantiate_bb (Compiler Runtime)](https://github.com/kgtkr/webschembly/blob/5671c31d8994504d2165053a94b906db84b02776/webschembly-runtime-rust/src/lib.rs#L412)
+  * 生成コードから呼び出されると指定されたBBに対応するモジュールを生成し、Wasmバイナリを `js_instantiate` に渡します
+
 ### 生成コードへの遷移
 BBVでは基本ブロック単位でコンパイルを行い、生成コードに遷移する方法が必要なので以下の方法をこれを実装します。
 
@@ -170,7 +176,7 @@ return
 
 ![runtime-flow](runtime-flow.png)
 
-具体的なソースコードは以下です。
+ソースコード:
 * [分岐が現れるまでBBをコンパイル単位に含める処理](https://github.com/kgtkr/webschembly/blob/5671c31d8994504d2165053a94b906db84b02776/webschembly-compiler/src/jit/jit_func.rs#L461)
 * [条件分岐が出てきた時の型情報収集](https://github.com/kgtkr/webschembly/blob/5671c31d8994504d2165053a94b906db84b02776/webschembly-compiler/src/jit/jit_func.rs#L622)
 * [BBへの遷移を `return_call_ref` 命令に置換する](https://github.com/kgtkr/webschembly/blob/5671c31d8994504d2165053a94b906db84b02776/webschembly-compiler/src/jit/jit_func.rs#L589)
@@ -206,7 +212,6 @@ Schemeコードを対象にクロージャ変換などを行い、Wasmに近い(
 ![compiler](compiler.png)
 
 ソースコード:
-
 * [IRの命令定義](https://github.com/kgtkr/webschembly/blob/5671c31d8994504d2165053a94b906db84b02776/webschembly-compiler-crates/ir/src/instr.rs)
 * [IRからWasmへの変換](https://github.com/kgtkr/webschembly/blob/5671c31d8994504d2165053a94b906db84b02776/webschembly-compiler/src/wasm_generator/module_generator.rs)
 * [各種最適化パス](https://github.com/kgtkr/webschembly/blob/5671c31d8994504d2165053a94b906db84b02776/webschembly-compiler/src/ir_processor/ssa_optimizer.rs)
