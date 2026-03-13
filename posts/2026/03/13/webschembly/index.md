@@ -1,7 +1,7 @@
 ---
 title: WebAssembly向けのScheme JITコンパイラを実装した
-date: "2026-03-12T11:08:20.007Z"
-update: "2026-03-12T11:08:20.007Z"
+date: "2026-03-13T02:26:16.970Z"
+update: "2026-03-13T02:26:16.970Z"
 tags: ["webassembly", "languageprocessor", "rust", "webschembly", "university"]
 name: webassembly
 lang: ja
