@@ -56,7 +56,7 @@ const Projects: NextPage = () => {
       <ul>
         <li>
           <a href="https://github.com/kgtkr/processing-language-server">
-            Processing Language Server
+            Processing Language Server (現在はProcessing本体にマージ済み)
           </a>
           <div>
             <a href="https://github.com/kgtkr/processing-language-server-vscode">
