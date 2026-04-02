@@ -8,6 +8,26 @@ const Projects: NextPage = () => {
     <div>
       <Title title="Projects" />
       <h1>Projects</h1>
+      <h2>2025〜</h2>
+      <ul>
+        <li>
+          <a href="https://github.com/kgtkr/webassembly">Webassembly</a>
+          <div>
+            wasm向けのScheme JIT処理系 (修士研究).{" "}
+            <Link href="/blog/2026/03/13/webassembly">記事</Link>
+          </div>
+        </li>
+      </ul>
+      <h2>2023～</h2>
+      <ul>
+        <li>
+          <a href="https://github.com/kgtkr/Repro4PDE">Repro4PDE</a>
+          <div>
+            Processingで作った2つのプログラムを、乱数シード・入力イベントなどを固定して同時実行することで視覚的に差分を確認するProcessingプラグイン
+            (卒業研究).{" "}
+          </div>
+        </li>
+      </ul>
       <h2>2022〜</h2>
       <ul>
         <li>
