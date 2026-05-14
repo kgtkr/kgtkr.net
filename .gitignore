@@ -3,3 +3,5 @@
 *.tsbuildinfo
 /out/
 /public/rss.xml
+result*
+.env.local
