@@ -89,5 +89,5 @@ HERPはもともと採用管理システムを開発していましたが、最�
 ## 宣伝コーナー
 HERPではエンジニアを募集しています。2026年卒からインターン経由でない普通の新卒採用も行うようになりました。興味がある方は以下の求人をぜひ見てみてください。
 
-* https://herp.careers/v1/herpinc/fIFcX_YmojdI?utm_source=self&utm_medium=article&utm_content=6n90y6ugvl
-* https://herp.careers/v1/herpinc/lZm5yTH2bvfy?utm_source=self&utm_medium=article&utm_content=6n90y6ugvl
+* https://herp.careers/v1/herpinc/fIFcX_YmojdI?utm_source=self&utm_medium=article&utm_content=xq848peh5u
+* https://herp.careers/v1/herpinc/lZm5yTH2bvfy?utm_source=self&utm_medium=article&utm_content=xq848peh5u
