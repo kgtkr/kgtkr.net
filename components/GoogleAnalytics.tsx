@@ -4,7 +4,7 @@ import * as React from "react";
 
 export type Props = {};
 
-function GoogleAnalytics({}: Props): JSX.Element {
+function GoogleAnalytics({}: Props): React.JSX.Element {
   const gaid = "UA-160194076-1";
   const router = useRouter();
   React.useEffect(() => {

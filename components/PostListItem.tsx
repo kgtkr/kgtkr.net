@@ -1,9 +1,8 @@
 import Link from "next/link";
 import React from "react";
-import { Post, postToPath } from "../lib/blog";
+import { Post, postToPath, formatDate } from "../lib/blog";
 import { markdownToPlainText } from "../lib/markdown";
 import styles from "./PostListItem.module.scss";
-import * as fns from "date-fns";
 
 export type PostListItemPost = {
   title: string;
@@ -15,7 +14,7 @@ export type PostListItemPost = {
 export function PostListItemPost(post: Post): PostListItemPost {
   return {
     title: post.matter.title,
-    date: fns.format(new Date(post.matter.date), "yyyy/MM/dd"),
+    date: formatDate(post.matter.date),
     summary: markdownToPlainText(post.markdown).substring(0, 480),
     path: postToPath(post),
   };

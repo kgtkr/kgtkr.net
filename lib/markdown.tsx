@@ -11,7 +11,7 @@ import * as Hast from "hast";
 import rehypeReact from "rehype-react";
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "next/legacy/image";
 import * as path from "path";
 import { toText } from "hast-util-to-text";
 import haskell from "highlight.js/lib/languages/haskell";
@@ -20,13 +20,9 @@ import ocaml from "highlight.js/lib/languages/ocaml";
 import graphql from "highlight.js/lib/languages/graphql";
 import { toHtml } from "hast-util-to-html";
 import remarkGfm from "remark-gfm";
+import * as prod from "react/jsx-runtime";
 
-function markdownProcessor(): Processor<
-  Mdast.Root,
-  Mdast.Root,
-  Mdast.Root,
-  void
-> {
+function markdownProcessor() {
   return unified()
     .use(remarkParse)
     .use(remarkBreaks)
@@ -35,14 +31,14 @@ function markdownProcessor(): Processor<
     .use(remarkMath);
 }
 
-function rehypeProcessor(): Processor<Mdast.Root, Hast.Root, Hast.Root, void> {
+function rehypeProcessor() {
   return markdownProcessor()
     .use(remarkRehype)
     .use(rehypeHighlight, { languages: { haskell, scala, ocaml, graphql } })
     .use(rehypeKatex);
 }
 
-function MdLink({ href, children }: { href: string; children: JSX.Element }) {
+function MdLink({ href, children }: { href: string; children: React.JSX.Element }) {
   return href.startsWith("https://") ||
     href.startsWith("http://") ||
     href.startsWith("//") ? (
@@ -68,8 +64,8 @@ function MdImage({ src, alt }: { src: string; alt: string }) {
     <Image
       src={
         src.startsWith("https://") ||
-        src.startsWith("http://") ||
-        src.startsWith("//")
+          src.startsWith("http://") ||
+          src.startsWith("//")
           ? src
           : context("./" + path.join(basedir, src))
       }
@@ -80,7 +76,9 @@ function MdImage({ src, alt }: { src: string; alt: string }) {
 
 function reactProcessor() {
   return rehypeProcessor().use(rehypeReact, {
-    createElement: React.createElement,
+    Fragment: prod.Fragment,
+    jsx: prod.jsx,
+    jsxs: prod.jsxs,
     components: {
       a: MdLink as any,
       img: MdImage as any,
@@ -97,7 +95,7 @@ export function Markdown(props: {
   basedir: string;
   context: __WebpackModuleApi.RequireContext;
   markdown: string;
-}): JSX.Element {
+}): React.JSX.Element {
   const element = reactProcessor().processSync(props.markdown).result;
 
   return (
@@ -129,10 +127,9 @@ function rehypeToHtml(this: any) {
 }
 
 export function markdownToPlainText(markdown: string): string {
-  return rehypeProcessor().use(rehypeToString).processSync(markdown)
-    .value as any;
+  return rehypeProcessor().use(rehypeToString).processSync(markdown).toString();
 }
 
 export function markdownToHtml(markdown: string): string {
-  return rehypeProcessor().use(rehypeToHtml).processSync(markdown).value as any;
+  return rehypeProcessor().use(rehypeToHtml).processSync(markdown).toString();
 }

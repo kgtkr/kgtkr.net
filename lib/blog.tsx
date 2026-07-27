@@ -1,4 +1,5 @@
 import matter from "gray-matter";
+import React from "react";
 import { z } from "zod";
 import * as N from "fp-ts/number";
 import * as Ord from "fp-ts/Ord";
@@ -44,7 +45,7 @@ const PostOrd = Ord.contramap((x: Post) => new Date(x.matter.date).valueOf())(
 
 let allPosts: Post[] | null = null;
 
-export function Content({ post }: { post: Post }): JSX.Element {
+export function Content({ post }: { post: Post }): React.JSX.Element {
   return (
     <Markdown
       context={postContext}
@@ -143,4 +144,12 @@ export function toPath({
   }/${typeof month === "string" ? month : month.toString().padStart(2, "0")}/${
     typeof day === "string" ? day : day.toString().padStart(2, "0")
   }/${slug}${lang === undefined || lang === defaultLang ? "" : `/${lang}`}`;
+}
+
+export function formatDate(dateString: string): string {
+  const d = new Date(dateString);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}/${month}/${day}`;
 }

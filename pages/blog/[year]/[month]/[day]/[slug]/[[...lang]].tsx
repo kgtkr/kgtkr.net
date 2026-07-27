@@ -4,11 +4,11 @@ import Title from "../../../../../../components/Title";
 import {
   getAllPosts,
   postToPath,
-  Post,
+  type Post,
   toPath,
   Content,
+  formatDate,
 } from "../../../../../../lib/blog";
-import * as fns from "date-fns";
 import Tags from "../../../../../../components/Tags";
 import Head from "next/head";
 import { markdownToPlainText } from "../../../../../../lib/markdown";
@@ -40,7 +40,7 @@ const Post: NextPage<Props> = ({ post }) => {
         </div>
       ) : null}
       <h1>{post.matter.title}</h1>
-      <div>{fns.format(new Date(post.matter.date), "yyyy/MM/dd")}</div>
+      <div>{formatDate(post.matter.date)}</div>
       <div>
         <Tags tags={post.matter.tags}></Tags>
       </div>

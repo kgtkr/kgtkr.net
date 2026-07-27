@@ -1,8 +1,7 @@
 import React from "react";
 import { NextPage } from "next";
-import Image from "next/image";
+import Image from "next/legacy/image";
 import profileImage from "../public/images/profile.png";
-import { SocialIcon } from "react-social-icons";
 import Link from "next/link";
 import styles from "./Bio.module.scss";
 
@@ -31,17 +30,49 @@ const Bio: NextPage = () => {
           <Link href="/about">About</Link>
         </div>
         <div>
-          <SocialIcon
-            url="https://mstdn.kgtkr.net/@me"
-            network="mastodon"
-            style={{ height: 25, width: 25, marginRight: 5 }}
-            bgColor="#523bc4"
-          />
-          <SocialIcon
-            url="https://github.com/kgtkr"
-            bgColor="#333"
-            style={{ height: 25, width: 25 }}
-          />
+          <a
+            href="https://mstdn.kgtkr.net/@me"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 25,
+              height: 25,
+              borderRadius: "50%",
+              backgroundColor: "#523bc4",
+              marginRight: 5,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/mastodon.svg"
+              alt="Mastodon"
+              style={{ width: 15, height: 15 }}
+            />
+          </a>
+          <a
+            href="https://github.com/kgtkr"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 25,
+              height: 25,
+              borderRadius: "50%",
+              backgroundColor: "#333",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/github.svg"
+              alt="GitHub"
+              style={{ width: 15, height: 15 }}
+            />
+          </a>
         </div>
       </div>
     </div>

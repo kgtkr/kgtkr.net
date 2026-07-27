@@ -1,5 +1,5 @@
-const CryptoJS = require("crypto-js");
-const fs = require("fs");
+import CryptoJS from "crypto-js";
+import fs from "node:fs";
 
 const mode = process.argv[2]; // 'encrypt' or 'decrypt'
 const file = process.argv[3];

@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:16.17.0 as builder
+FROM --platform=$BUILDPLATFORM node:24 as builder
 
 WORKDIR /app
 
@@ -8,11 +8,11 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:16.17.0-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/next.config.js /app
+COPY --from=builder /app/next.config.mjs /app
 COPY --from=builder /app/.next/static /app/.next/static
 COPY --from=builder /app/public /app/public
 
