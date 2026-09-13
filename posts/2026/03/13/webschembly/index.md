@@ -1,7 +1,7 @@
 ---
 title: WebAssembly向けのScheme JITコンパイラを実装した
 date: "2026-03-13T02:26:16.970Z"
-update: "2026-03-13T02:26:16.970Z"
+update: "2026-09-13T09:54:22.000Z"
 tags: ["webassembly", "languageprocessor", "rust", "webschembly", "university"]
 name: webassembly
 lang: ja
@@ -19,7 +19,7 @@ otherLangs: []
 * [WebAssemblyに関数単位でJITする言語を実装した](2022/04/04/wasm-per-function-jit-language)
   * 4年前に書いた記事です。Wasmで動的なコード生成を行う小さな処理系を作ったことについての解説を行っています
 
-修論はそのうち大学のリポジトリで公開されたらリンク追加します。
+~~修論はそのうち大学のリポジトリで公開されたらリンク追加します。~~ (2026-09-13追記: [修論](https://uec.repo.nii.ac.jp/records/2001112)が公開されました)
 
 ## 背景・モチベーション
 C / Rustなどの静的型付け言語は、AOTコンパイラによってWasmに変換することで、Webブラウザ上で高速に実行することができるようになっています。
