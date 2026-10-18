@@ -102,21 +102,22 @@ jobs:
           RENOVATE_FORCE: >-
             {
               "dependencyDashboard": false,
-              "branchPrefix": "renovate-dispatch/${{ github.event.client_payload.package }}/",
-              "packageRules": [
-                {
-                  "matchPackageNames": ["*"],
-                  "enabled": false
-                },
-                {
-                  "matchPackageNames": ["${{ github.event.client_payload.image }}"],
-                  "enabled": true
-                }
-              ]
+              "branchPrefix": "renovate-dispatch/${{ github.event.client_payload.package }}/"
             }
+          RENOVATE_PACKAGE_RULES: >-
+            [
+              {
+                "matchPackageNames": ["*"],
+                "enabled": false
+              },
+              {
+                "matchPackageNames": ["${{ github.event.client_payload.image }}"],
+                "enabled": true
+              }
+            ]
 ```
 
-ここでの Renovate の実行は `RENOVATE_FORCE` を使って設定ファイルを書き換え、対象イメージのみ更新チェックをしています。
+ここでの Renovate の実行は `RENOVATE_FORCE` と `RENOVATE_PACKAGE_RULES` を使って設定を上書き・追加し、対象イメージのみ更新チェックをしています。
 これを設定しないと、リポジトリ全体の (Helm チャートなども含む) 依存関係をチェックするため、実行に時間が掛かり、またAPIのレートリミットに引っかかるリスクも上がります。
 
 ## 最後に
