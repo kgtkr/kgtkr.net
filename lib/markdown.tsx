@@ -21,6 +21,7 @@ import graphql from "highlight.js/lib/languages/graphql";
 import { toHtml } from "hast-util-to-html";
 import remarkGfm from "remark-gfm";
 import * as prod from "react/jsx-runtime";
+import Graphviz from "../components/Graphviz";
 
 function markdownProcessor() {
   return unified()
@@ -34,7 +35,10 @@ function markdownProcessor() {
 function rehypeProcessor() {
   return markdownProcessor()
     .use(remarkRehype)
-    .use(rehypeHighlight, { languages: { haskell, scala, ocaml, graphql } })
+    .use(rehypeHighlight, {
+      languages: { haskell, scala, ocaml, graphql },
+      plainText: ["dot"],
+    })
     .use(rehypeKatex);
 }
 
@@ -74,6 +78,29 @@ function MdImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+function MdPre({ children, ...props }: React.ComponentPropsWithoutRef<"pre">) {
+  if (
+    React.isValidElement(children) &&
+    typeof children.props === "object" &&
+    children.props !== null
+  ) {
+    const codeProps = children.props as Record<string, any>;
+    const className: string = codeProps.className || "";
+    const classes = className.split(" ");
+    if (classes.includes("language-dot")) {
+      const codeChildren = codeProps.children;
+      const chart =
+        typeof codeChildren === "string"
+          ? codeChildren
+          : Array.isArray(codeChildren)
+          ? codeChildren.join("")
+          : "";
+      return <Graphviz dot={chart} />;
+    }
+  }
+  return <pre {...props}>{children}</pre>;
+}
+
 function reactProcessor() {
   return rehypeProcessor().use(rehypeReact, {
     Fragment: prod.Fragment,
@@ -82,6 +109,7 @@ function reactProcessor() {
     components: {
       a: MdLink as any,
       img: MdImage as any,
+      pre: MdPre as any,
     },
   });
 }

@@ -9,6 +9,7 @@
     "url": "https://github.com/kgtkr/kgtkr.net/issues"
   },
   "dependencies": {
+    "@hpcc-js/wasm-graphviz": "^1.29.2",
     "crypto-js": "^4.2.0",
     "fp-ts": "^2.12.3",
     "gray-matter": "^4.0.3",
@@ -41,12 +42,12 @@
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
-    "@types/webpack-env": "^1.18.0",
     "@types/gtag.js": "^0.0.11",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/rss": "^0.0.29",
+    "@types/webpack-env": "^1.18.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
