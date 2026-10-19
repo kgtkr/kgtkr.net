@@ -11,8 +11,7 @@ import * as Hast from "hast";
 import rehypeReact from "rehype-react";
 import React from "react";
 import Link from "next/link";
-import Image from "next/legacy/image";
-import * as path from "path";
+import Image from "next/image";
 import { toText } from "hast-util-to-text";
 import haskell from "highlight.js/lib/languages/haskell";
 import scala from "highlight.js/lib/languages/scala";
@@ -22,6 +21,12 @@ import { toHtml } from "hast-util-to-html";
 import remarkGfm from "remark-gfm";
 import * as prod from "react/jsx-runtime";
 import Graphviz from "../components/Graphviz";
+
+export type ImageMetadata = {
+  src: string;
+  width: number;
+  height: number;
+};
 
 function markdownProcessor() {
   return unified()
@@ -42,7 +47,13 @@ function rehypeProcessor() {
     .use(rehypeKatex);
 }
 
-function MdLink({ href, children }: { href: string; children: React.JSX.Element }) {
+function MdLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.JSX.Element;
+}) {
   return href.startsWith("https://") ||
     href.startsWith("http://") ||
     href.startsWith("//") ? (
@@ -57,23 +68,24 @@ function MdLink({ href, children }: { href: string; children: React.JSX.Element 
 }
 
 function MdImage({ src, alt }: { src: string; alt: string }) {
-  const markdownContext = React.useContext(MarkdownContext);
-  if (markdownContext === null) {
+  const images = React.useContext(MarkdownContext);
+  if (images === null) {
     throw new Error("MarkdownContext is null");
   }
 
-  const { basedir, context } = markdownContext;
+  const normalized = src.replace(/^\.\//, "");
+  const meta = images[normalized];
+  if (!meta) {
+    throw new Error(`Image not found: ${src}`);
+  }
 
   return (
     <Image
-      src={
-        src.startsWith("https://") ||
-          src.startsWith("http://") ||
-          src.startsWith("//")
-          ? src
-          : context("./" + path.join(basedir, src))
-      }
+      src={meta.src}
+      width={meta.width}
+      height={meta.height}
       alt={alt}
+      style={{ maxWidth: "100%", height: "auto" }}
     />
   );
 }
@@ -114,25 +126,19 @@ function reactProcessor() {
   });
 }
 
-const MarkdownContext = React.createContext<null | {
-  basedir: string;
-  context: __WebpackModuleApi.RequireContext;
-}>(null);
+const MarkdownContext = React.createContext<null | Record<
+  string,
+  ImageMetadata
+>>(null);
 
 export function Markdown(props: {
-  basedir: string;
-  context: __WebpackModuleApi.RequireContext;
+  images?: Record<string, ImageMetadata>;
   markdown: string;
 }): React.JSX.Element {
   const element = reactProcessor().processSync(props.markdown).result;
 
   return (
-    <MarkdownContext.Provider
-      value={{
-        basedir: props.basedir,
-        context: props.context,
-      }}
-    >
+    <MarkdownContext.Provider value={props.images ?? {}}>
       {element}
     </MarkdownContext.Provider>
   );

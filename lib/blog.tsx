@@ -1,23 +1,15 @@
-import matter from "gray-matter";
 import React from "react";
 import { z } from "zod";
 import * as N from "fp-ts/number";
 import * as Ord from "fp-ts/Ord";
-import { identity, pipe } from "fp-ts/function";
-import * as A from "fp-ts/Array";
 import * as S from "fp-ts/string";
-import * as NA from "fp-ts/NonEmptyArray";
-import * as R from "fp-ts/Record";
-import * as path from "path";
-import { Markdown } from "./markdown";
-
-const postContext = require.context("../posts", true);
+import { ImageMetadata, Markdown } from "./markdown";
 
 const defaultLang = "ja";
 
 const Lang = z.enum(["en", "ja"]);
 
-const Matter = z
+export const Matter = z
   .object({
     title: z.string(),
     date: z.string(),
@@ -36,47 +28,15 @@ export type Matter = z.infer<typeof Matter>;
 export type Post = {
   matter: Matter;
   markdown: string;
-  basedir: string;
+  images: Record<string, ImageMetadata>;
 };
 
-const PostOrd = Ord.contramap((x: Post) => new Date(x.matter.date).valueOf())(
-  Ord.reverse(N.Ord),
-);
-
-let allPosts: Post[] | null = null;
+export const PostOrd = Ord.contramap((x: Post) =>
+  new Date(x.matter.date).valueOf(),
+)(Ord.reverse(N.Ord));
 
 export function Content({ post }: { post: Post }): React.JSX.Element {
-  return (
-    <Markdown
-      context={postContext}
-      basedir={post.basedir}
-      markdown={post.markdown}
-    />
-  );
-}
-
-export function getAllPosts({
-  includePrivate = false,
-}: {
-  includePrivate?: boolean;
-}): Post[] {
-  if (allPosts === null) {
-    const keys = postContext.keys().filter((x) => x.endsWith(".md"));
-    allPosts = pipe(
-      keys,
-      A.map((key) => {
-        const { data, content } = matter(postContext(key).default);
-        return {
-          matter: Matter.parse(data),
-          markdown: content,
-          basedir: path.dirname(key),
-        };
-      }),
-      A.sort(PostOrd),
-    );
-  }
-
-  return allPosts.filter((post) => includePrivate || !post.matter.private);
+  return <Markdown images={post.images} markdown={post.markdown} />;
 }
 
 export type Tag = {
@@ -84,36 +44,9 @@ export type Tag = {
   count: number;
 };
 
-const TagOrd: Ord.Ord<Tag> = Ord.contramap(
+export const TagOrd: Ord.Ord<Tag> = Ord.contramap(
   (tag: Tag) => [tag.count, tag.name] as const,
 )(Ord.tuple(Ord.reverse(N.Ord), S.Ord));
-
-let allTags: Tag[] | null = null;
-
-export function getAllTags(): Tag[] {
-  if (allTags !== null) {
-    return allTags;
-  }
-
-  const posts = getAllPosts({});
-
-  allTags = pipe(
-    posts,
-    A.chain((blog) => blog.matter.tags),
-    NA.groupBy(identity),
-    R.map((arr) => arr.length),
-    R.toArray,
-    A.map(
-      ([name, count]): Tag => ({
-        name,
-        count,
-      }),
-    ),
-    A.sort(TagOrd),
-  );
-
-  return allTags;
-}
 
 export function postToPath(post: Post): string {
   const date = new Date(post.matter.date);

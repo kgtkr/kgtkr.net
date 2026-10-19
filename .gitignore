@@ -3,5 +3,6 @@
 *.tsbuildinfo
 /out/
 /public/rss.xml
+/public/post-images/
 result*
 .env.local

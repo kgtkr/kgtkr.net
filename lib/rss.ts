@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import RSS from "rss";
-import { getAllPosts, postToPath } from "./blog";
+import { postToPath } from "./blog";
+import { getAllPosts } from "./blog.server";
 import { markdownToPlainText } from "./markdown";
 
 export async function generatedRss(): Promise<void> {
@@ -20,7 +21,7 @@ export async function generatedRss(): Promise<void> {
     webMaster: "kgtkr",
   });
 
-  const posts = getAllPosts({});
+  const posts = await getAllPosts({});
 
   posts.forEach((post) => {
     const url = `${origin}${postToPath(post)}`;

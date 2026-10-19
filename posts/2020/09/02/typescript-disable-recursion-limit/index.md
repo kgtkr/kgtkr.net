@@ -84,8 +84,8 @@ $ sed -i '' 's/instantiationDepth === 50 || instantiationCount >= 5000000/false/
 
 ## 結果など
 やったね
-![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/169698/4e279ed0-8394-9b21-79b6-af62b05cc7e8.png)
+![image.png](./image1.png)
 
 最近話題の[Template string types](https://github.com/microsoft/TypeScript/pull/40336)と組み合わせれば[既存のTSの型レベルbrainfuckインタプリタ](https://github.com/susisu/typefuck)にlexerとコードポイント変換処理を追加するだけでbrainfuckのhello world!も実行できます。
 
-![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/169698/513ccec9-4bb4-5090-9b33-99c0585f7a26.png)
+![image.png](./image2.png)

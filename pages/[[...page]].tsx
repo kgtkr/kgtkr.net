@@ -3,7 +3,7 @@ import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Title from "../components/Title";
 import Bio from "../components/Bio";
 import Link from "next/link";
-import { getAllPosts } from "../lib/blog";
+import { getAllPosts, toPostListItemPost } from "../lib/blog.server";
 import PostList from "../components/PostList";
 import { generatedRss } from "../lib/rss";
 import { PostListItemPost } from "../components/PostListItem";
@@ -42,7 +42,7 @@ const Home: NextPage<Props> = (props) => {
 export default Home;
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const posts = getAllPosts({}).map((post) => PostListItemPost(post));
+  const posts = (await getAllPosts({})).map((post) => toPostListItemPost(post));
 
   return {
     paths: pagination.getStaticPaths(posts),
@@ -58,7 +58,9 @@ export const getStaticProps: GetStaticProps<
   if (page === 0) {
     await generatedRss();
   }
-  const allPosts = getAllPosts({}).map((post) => PostListItemPost(post));
+  const allPosts = (await getAllPosts({})).map((post) =>
+    toPostListItemPost(post),
+  );
   const { items: posts, totalPages } = pagination.getStaticProps(allPosts, {
     page,
   });

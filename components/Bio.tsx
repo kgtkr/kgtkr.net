@@ -1,6 +1,6 @@
 import React from "react";
 import { NextPage } from "next";
-import Image from "next/legacy/image";
+import Image from "next/image";
 import profileImage from "../public/images/profile.png";
 import Link from "next/link";
 import styles from "./Bio.module.scss";
@@ -20,8 +20,8 @@ const Bio: NextPage = () => {
         <Image
           src={profileImage}
           alt={"Profile image"}
-          height={100}
-          width={100}
+          height={50}
+          width={50}
         />
       </div>
       <div>
@@ -45,11 +45,11 @@ const Bio: NextPage = () => {
               marginRight: 5,
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/images/mastodon.svg"
               alt="Mastodon"
-              style={{ width: 15, height: 15 }}
+              width={15}
+              height={15}
             />
           </a>
           <a
@@ -66,11 +66,11 @@ const Bio: NextPage = () => {
               backgroundColor: "#333",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/images/github.svg"
               alt="GitHub"
-              style={{ width: 15, height: 15 }}
+              width={15}
+              height={15}
             />
           </a>
         </div>

@@ -135,12 +135,12 @@ const About: NextPage = () => {
         </tbody>
       </table>
       <h2>このサイトについて</h2>
-      <p>
+      <div>
         ソースコードはGitHubで公開しています
         <div>
           <a href="https://github.com/kgtkr/kgtkr.net">kgtkr/kgtkr.net</a>
         </div>
-      </p>
+      </div>
     </div>
   );
 };

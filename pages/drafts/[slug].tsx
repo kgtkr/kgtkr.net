@@ -56,12 +56,6 @@ const Draft: NextPage<Props> = ({ encryptedContent, slug }) => {
     }
   }, [router.isReady, router.query.enc_key, encryptedContent, slug]);
 
-  const dummyContext = ((_path: string) =>
-    _path) as __WebpackModuleApi.RequireContext;
-  dummyContext.keys = () => [];
-  dummyContext.resolve = (_path: string) => _path;
-  dummyContext.id = "dummy";
-
   if (error) {
     return (
       <div>
@@ -90,11 +84,7 @@ const Draft: NextPage<Props> = ({ encryptedContent, slug }) => {
         この記事は限定公開記事です。
       </div>
       <h1>{title}</h1>
-      {markdown ? (
-        <Markdown context={dummyContext} basedir="" markdown={markdown} />
-      ) : (
-        <p>Decrypting...</p>
-      )}
+      {markdown ? <Markdown markdown={markdown} /> : <p>Decrypting...</p>}
     </div>
   );
 };

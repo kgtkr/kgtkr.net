@@ -1,7 +1,8 @@
 import React from "react";
 import { NextPage, GetStaticProps } from "next";
 import styles from "./Tags.module.scss";
-import { getAllTags, Tag } from "../../lib/blog";
+import { Tag } from "../../lib/blog";
+import { getAllTags } from "../../lib/blog.server";
 import Link from "next/link";
 import Title from "../../components/Title";
 
@@ -31,7 +32,7 @@ export default Tags;
 export const getStaticProps: GetStaticProps<Props> = async () => {
   return {
     props: {
-      tags: getAllTags(),
+      tags: await getAllTags(),
     },
   };
 };

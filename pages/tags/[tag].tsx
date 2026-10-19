@@ -4,7 +4,11 @@ import React from "react";
 import PostList from "../../components/PostList";
 import { PostListItemPost } from "../../components/PostListItem";
 import Title from "../../components/Title";
-import { Post, getAllTags, getAllPosts } from "../../lib/blog";
+import {
+  getAllTags,
+  getAllPosts,
+  toPostListItemPost,
+} from "../../lib/blog.server";
 
 type Props = {
   posts: PostListItemPost[];
@@ -25,7 +29,7 @@ const Tags: NextPage<Props> = (props) => {
 export default Tags;
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const tags = getAllTags();
+  const tags = await getAllTags();
   return {
     paths: tags.map((tag) => `/tags/${tag.name}`),
     fallback: false,
@@ -35,10 +39,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps<Props, { tag: string }> = async ({
   params,
 }) => {
-  const posts = getAllPosts({});
+  const posts = await getAllPosts({});
   const filteredPosts = posts
     .filter((post) => post.matter.tags.includes(params!.tag))
-    .map((post) => PostListItemPost(post));
+    .map((post) => toPostListItemPost(post));
   return {
     props: {
       posts: filteredPosts,

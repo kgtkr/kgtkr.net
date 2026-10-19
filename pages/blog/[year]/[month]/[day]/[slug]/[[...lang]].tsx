@@ -2,13 +2,13 @@ import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import React from "react";
 import Title from "../../../../../../components/Title";
 import {
-  getAllPosts,
   postToPath,
   type Post,
   toPath,
   Content,
   formatDate,
 } from "../../../../../../lib/blog";
+import { getAllPosts } from "../../../../../../lib/blog.server";
 import Tags from "../../../../../../components/Tags";
 import Head from "next/head";
 import { markdownToPlainText } from "../../../../../../lib/markdown";
@@ -50,7 +50,7 @@ const Post: NextPage<Props> = ({ post }) => {
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const posts = getAllPosts({ includePrivate: true });
+  const posts = await getAllPosts({ includePrivate: true });
   return {
     paths: posts.map((post) => postToPath(post)),
     fallback: false,
@@ -61,7 +61,7 @@ export const getStaticProps: GetStaticProps<
   Props,
   { lang?: string[]; year: string; month: string; day: string; slug: string }
 > = async ({ params }) => {
-  const posts = getAllPosts({ includePrivate: true });
+  const posts = await getAllPosts({ includePrivate: true });
   const post = posts.find(
     (post) =>
       postToPath(post) ===

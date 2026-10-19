@@ -14,13 +14,12 @@
     "noEmit": true,
     "incremental": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve"
   },
   "include": [
-    "global.d.ts",
     "**/*.ts",
     "**/*.tsx"
   ],
