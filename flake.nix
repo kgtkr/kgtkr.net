@@ -15,17 +15,18 @@
         "aarch64-darwin"
         "x86_64-darwin"
       ];
+      imports = [
+        ./image.nix
+      ];
       perSystem =
         {
-          self',
           pkgs,
-          system,
           ...
         }:
         let
           lib = pkgs.lib;
-          # TODO: .next/cache に書き込もうとしてエラーが出る
-          website = inputs.dream2nix.lib.evalModules {
+          nodejs = pkgs.nodejs_24;
+          kgtkrnet = inputs.dream2nix.lib.evalModules {
             packageSets.nixpkgs = pkgs;
             modules = [
               inputs.dream2nix.modules.dream2nix.nodejs-package-lock-v3
@@ -46,7 +47,7 @@
                     cp -a next.config.mjs $out/lib/kgtkr.net/next.config.mjs
 
                     mkdir -p $out/bin
-                    makeWrapper ${pkgs.nodejs_24}/bin/node $out/bin/kgtkr.net \
+                    makeWrapper ${nodejs}/bin/node $out/bin/kgtkr.net \
                       --chdir $out/lib/kgtkr.net \
                       --add-flags $out/lib/kgtkr.net/server.js \
                       --set-default PORT 3000 \
@@ -54,8 +55,10 @@
 
                     runHook postInstall
                   '';
-                  meta = {
-                    mainProgram = "kgtkr.net";
+                  passthru = {
+                    meta = {
+                      mainProgram = "kgtkr.net";
+                    };
                   };
                 };
                 env = {
@@ -65,7 +68,7 @@
                   { nixpkgs, ... }:
                   {
                     inherit (nixpkgs) fetchFromGitHub stdenv;
-                    nodejs = nixpkgs.nodejs_24;
+                    inherit nodejs;
                   };
                 nodejs-package-lock-v3 = {
                   packageLockFile = ./package-lock.json;
@@ -75,11 +78,16 @@
           };
         in
         {
-          packages.default = website.config.public;
+          packages = {
+            inherit kgtkrnet;
+            default = kgtkrnet;
+          };
 
           devShells.default = pkgs.mkShell {
             buildInputs = [
-              pkgs.nodejs_24
+              nodejs
+              pkgs.skopeo
+              pkgs.manifest-tool
             ];
           };
           formatter = pkgs.nixfmt-tree;
