@@ -115,7 +115,7 @@ export async function getAllPosts({
 }: {
   includePrivate?: boolean;
 }): Promise<Post[]> {
-  if (allPostsPromise === null) {
+  if (allPostsPromise === null || process.env.NODE_ENV !== "production") {
     allPostsPromise = loadAllPosts();
   }
   const posts = await allPostsPromise;
@@ -125,7 +125,7 @@ export async function getAllPosts({
 let allTagsPromise: Promise<Tag[]> | null = null;
 
 export async function getAllTags(): Promise<Tag[]> {
-  if (allTagsPromise === null) {
+  if (allTagsPromise === null || process.env.NODE_ENV !== "production") {
     allTagsPromise = (async () => {
       const posts = await getAllPosts({});
       return pipe(

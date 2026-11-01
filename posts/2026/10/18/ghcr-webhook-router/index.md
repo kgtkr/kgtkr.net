@@ -2,7 +2,7 @@
 title: アプリリポジトリとマニフェストリポジトリを疎結合に保ったまま、イメージビルド後即時にタグを書き換えたい
 date: "2026-10-18T11:02:29.000Z"
 update: "2026-10-18T11:02:29.000Z"
-tags: ["kubernetes",]
+tags: ["kubernetes", "ai slop application"]
 name: ghcr-webhook-router
 lang: ja
 otherLangs: []
