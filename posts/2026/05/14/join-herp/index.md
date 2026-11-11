@@ -2,7 +2,7 @@
 title: HERPに入社しました
 date: "2026-05-14T12:51:49.110Z"
 update: "2026-05-14T12:51:49.110Z"
-tags: ["career"]
+tags: ["herp", "career"]
 name: join-herp
 lang: ja
 otherLangs: []
