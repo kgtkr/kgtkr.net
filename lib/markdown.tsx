@@ -17,6 +17,10 @@ import haskell from "highlight.js/lib/languages/haskell";
 import scala from "highlight.js/lib/languages/scala";
 import ocaml from "highlight.js/lib/languages/ocaml";
 import graphql from "highlight.js/lib/languages/graphql";
+import nix from "highlight.js/lib/languages/nix";
+import json from "highlight.js/lib/languages/json";
+import yaml from "highlight.js/lib/languages/yaml";
+import diff from "highlight.js/lib/languages/diff";
 import { toHtml } from "hast-util-to-html";
 import remarkGfm from "remark-gfm";
 import * as prod from "react/jsx-runtime";
@@ -37,31 +41,49 @@ function markdownProcessor() {
     .use(remarkMath);
 }
 
+import { rehypeDiffPre, rehypeDiffPost } from "./rehypeDiff";
+
 function rehypeProcessor() {
   return markdownProcessor()
-    .use(remarkRehype)
+    .use(remarkRehype, {
+      clobberPrefix: "",
+      footnoteLabel: "脚注",
+      footnoteBackLabel: "参照に戻る",
+    })
+    .use(rehypeDiffPre)
     .use(rehypeHighlight, {
-      languages: { haskell, scala, ocaml, graphql },
+      languages: { haskell, scala, ocaml, graphql, nix, json, yaml, diff },
       plainText: ["dot"],
     })
+    .use(rehypeDiffPost)
     .use(rehypeKatex);
 }
 
 function MdLink({
-  href,
+  href = "",
   children,
-}: {
-  href: string;
-  children: React.JSX.Element;
-}) {
-  return href.startsWith("https://") ||
+  ...props
+}: React.ComponentPropsWithoutRef<"a">) {
+  if (
+    href.startsWith("https://") ||
     href.startsWith("http://") ||
-    href.startsWith("//") ? (
-    <a href={href} target="_blank" rel="noreferrer">
-      {children}
-    </a>
-  ) : (
-    <Link href={href}>
+    href.startsWith("//")
+  ) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" {...props}>
+        {children}
+      </a>
+    );
+  }
+  if (href.startsWith("#")) {
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} {...props}>
       <>{children}</>
     </Link>
   );
