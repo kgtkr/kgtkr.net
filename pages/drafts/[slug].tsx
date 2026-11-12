@@ -6,26 +6,50 @@ import matter from "gray-matter";
 import Head from "next/head";
 import fs from "fs/promises";
 import path from "path";
-import CryptoJS from "crypto-js";
 import { useRouter } from "next/router";
 import { z } from "zod";
+import {
+  decryptDraftContent,
+  deriveArticleKey,
+  isEncryptedDraft,
+} from "../../lib/draft-crypt";
 
 const Matter = z.object({
   title: z.string(),
 });
 
-type Props = {
-  encryptedContent: string;
-  slug: string;
-};
+type Props =
+  | {
+      mode: "plaintext";
+      slug: string;
+      title: string;
+      markdown: string;
+      devEncKey: string | null;
+    }
+  | {
+      mode: "encrypted";
+      slug: string;
+      encryptedContent: string;
+    };
 
-const Draft: NextPage<Props> = ({ encryptedContent, slug }) => {
+const Draft: NextPage<Props> = (props) => {
   const router = useRouter();
-  const [title, setTitle] = useState<string>("Loading...");
-  const [markdown, setMarkdown] = useState<string>("");
+  const [title, setTitle] = useState<string>(
+    props.mode === "plaintext" ? props.title : "Loading...",
+  );
+  const [markdown, setMarkdown] = useState<string>(
+    props.mode === "plaintext" ? props.markdown : "",
+  );
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
+    if (props.mode === "plaintext") {
+      setTitle(props.title);
+      setMarkdown(props.markdown);
+      setError("");
+      return;
+    }
+
     if (!router.isReady) return;
 
     const key = router.query.enc_key;
@@ -36,25 +60,20 @@ const Draft: NextPage<Props> = ({ encryptedContent, slug }) => {
     }
 
     try {
-      const decryptedBytes = CryptoJS.AES.decrypt(encryptedContent, key);
-      const decryptedContent = decryptedBytes.toString(CryptoJS.enc.Utf8);
-
-      if (!decryptedContent) {
-        setError("Decryption failed");
-        setTitle("Error");
-        return;
-      }
-
+      const decryptedContent = decryptDraftContent(
+        props.encryptedContent,
+        key,
+      );
       const { data, content } = matter(decryptedContent);
       const parsedData = Matter.parse(data);
       setTitle(parsedData.title);
       setMarkdown(content);
       setError("");
-    } catch (e) {
+    } catch {
       setError("Decryption failed");
       setTitle("Error");
     }
-  }, [router.isReady, router.query.enc_key, encryptedContent, slug]);
+  }, [props, router.isReady, router.query.enc_key]);
 
   if (error) {
     return (
@@ -81,7 +100,30 @@ const Draft: NextPage<Props> = ({ encryptedContent, slug }) => {
           color: "#f00",
         }}
       >
-        この記事は限定公開記事です。
+        <div>この記事は限定公開記事です。</div>
+        {props.mode === "plaintext" && (
+          <div
+            style={{
+              marginTop: "0.5em",
+              fontSize: "0.9em",
+              color: "#555",
+            }}
+          >
+            <div>
+              <strong>[Dev Mode: Plaintext Draft]</strong>
+            </div>
+            {props.devEncKey ? (
+              <div style={{ marginTop: "0.25em" }}>
+                Share URL:{" "}
+                <code>{`/drafts/${props.slug}?enc_key=${props.devEncKey}`}</code>
+              </div>
+            ) : (
+              <div style={{ marginTop: "0.25em" }}>
+                Note: <code>DRAFT_MASTER_KEY</code> is not set in environment.
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <h1>{title}</h1>
       {markdown ? <Markdown markdown={markdown} /> : <p>Decrypting...</p>}
@@ -94,9 +136,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const files = await fs.readdir(draftsDir);
 
   const paths = files
-    .filter((file) => file.endsWith(".md.enc"))
+    .filter((file) => file.endsWith(".md"))
     .map((file) => ({
-      params: { slug: file.replace(/\.md\.enc$/, "") },
+      params: { slug: file.replace(/\.md$/, "") },
     }));
 
   return {
@@ -107,13 +149,64 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps<Props> = async (context) => {
   const { slug } = context.params as { slug: string };
-  const encPath = path.join(process.cwd(), "drafts", `${slug}.md.enc`);
-  const encryptedContent = await fs.readFile(encPath, "utf-8");
+  const draftPath = path.join(process.cwd(), "drafts", `${slug}.md`);
+  const rawContent = await fs.readFile(draftPath, "utf-8");
+  const isEnc = isEncryptedDraft(rawContent);
+
+  if (process.env.NODE_ENV === "development") {
+    const masterKey = process.env.DRAFT_MASTER_KEY || null;
+    const devEncKey = masterKey ? deriveArticleKey(masterKey, slug) : null;
+
+    if (!isEnc) {
+      const { data, content } = matter(rawContent);
+      const parsedData = Matter.parse(data);
+      return {
+        props: {
+          mode: "plaintext",
+          slug,
+          title: parsedData.title,
+          markdown: content,
+          devEncKey,
+        },
+      };
+    }
+
+    if (devEncKey) {
+      const decrypted = decryptDraftContent(rawContent, devEncKey);
+      const { data, content } = matter(decrypted);
+      const parsedData = Matter.parse(data);
+      return {
+        props: {
+          mode: "plaintext",
+          slug,
+          title: parsedData.title,
+          markdown: content,
+          devEncKey,
+        },
+      };
+    }
+
+    return {
+      props: {
+        mode: "encrypted",
+        slug,
+        encryptedContent: rawContent.trim(),
+      },
+    };
+  }
+
+  // Production build: require encrypted content to prevent accidental plaintext leakage
+  if (!isEnc) {
+    throw new Error(
+      `Draft "drafts/${slug}.md" is not encrypted! Plaintext drafts cannot be included in a production build. Run "npm run draft:lock" before building locally.`,
+    );
+  }
 
   return {
     props: {
-      encryptedContent,
+      mode: "encrypted",
       slug,
+      encryptedContent: rawContent.trim(),
     },
   };
 };

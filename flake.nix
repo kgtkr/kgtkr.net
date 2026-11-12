@@ -89,6 +89,9 @@
               pkgs.skopeo
               pkgs.manifest-tool
             ];
+            shellHook = ''
+              node ./scripts/draft-crypt.mjs setup --quiet 2>/dev/null || true
+            '';
           };
           formatter = pkgs.nixfmt-tree;
         };

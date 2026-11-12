@@ -66,6 +66,11 @@
     "format": "prettier --write {components,lib,pages}/**/*.{js,jsx,ts,tsx}",
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "draft:setup": "node scripts/draft-crypt.mjs setup",
+    "draft:unlock": "node scripts/draft-crypt.mjs unlock",
+    "draft:lock": "node scripts/draft-crypt.mjs lock",
+    "draft:status": "node scripts/draft-crypt.mjs status",
+    "draft:key": "node scripts/draft-crypt.mjs key"
   }
 }
