@@ -20,6 +20,7 @@ export const Matter = z
     private: z.boolean().default(false),
     showPrivateMessage: z.boolean().default(true),
     otherLangs: z.array(Lang).default([]),
+    disableBreaks: z.boolean().default(false),
   })
   .strict();
 
@@ -36,7 +37,13 @@ export const PostOrd = Ord.contramap((x: Post) =>
 )(Ord.reverse(N.Ord));
 
 export function Content({ post }: { post: Post }): React.JSX.Element {
-  return <Markdown images={post.images} markdown={post.markdown} />;
+  return (
+    <Markdown
+      images={post.images}
+      markdown={post.markdown}
+      disableBreaks={post.matter.disableBreaks}
+    />
+  );
 }
 
 export type Tag = {

@@ -6,7 +6,7 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import remarkBreaks from "remark-breaks";
-import * as Mdast from "mdast";
+import remarkJoinCjkLines from "remark-join-cjk-lines";
 import * as Hast from "hast";
 import rehypeReact from "rehype-react";
 import React from "react";
@@ -32,19 +32,24 @@ export type ImageMetadata = {
   height: number;
 };
 
-function markdownProcessor() {
-  return unified()
-    .use(remarkParse)
-    .use(remarkBreaks)
-    .use(remarkGfm)
-    .use(emoji)
-    .use(remarkMath);
+export type MarkdownOptions = {
+  disableBreaks?: boolean;
+};
+
+function markdownProcessor(options?: MarkdownOptions) {
+  const processor = unified().use(remarkParse);
+  if (!options?.disableBreaks) {
+    processor.use(remarkBreaks);
+  } else {
+    processor.use(remarkJoinCjkLines);
+  }
+  return processor.use(remarkGfm).use(emoji).use(remarkMath);
 }
 
 import { rehypeDiffPre, rehypeDiffPost } from "./rehypeDiff";
 
-function rehypeProcessor() {
-  return markdownProcessor()
+function rehypeProcessor(options?: MarkdownOptions) {
+  return markdownProcessor(options)
     .use(remarkRehype, {
       clobberPrefix: "",
       footnoteLabel: "脚注",
@@ -135,8 +140,8 @@ function MdPre({ children, ...props }: React.ComponentPropsWithoutRef<"pre">) {
   return <pre {...props}>{children}</pre>;
 }
 
-function reactProcessor() {
-  return rehypeProcessor().use(rehypeReact, {
+function reactProcessor(options?: MarkdownOptions) {
+  return rehypeProcessor(options).use(rehypeReact, {
     Fragment: prod.Fragment,
     jsx: prod.jsx,
     jsxs: prod.jsxs,
@@ -156,8 +161,11 @@ const MarkdownContext = React.createContext<null | Record<
 export function Markdown(props: {
   images?: Record<string, ImageMetadata>;
   markdown: string;
+  disableBreaks?: boolean;
 }): React.JSX.Element {
-  const element = reactProcessor().processSync(props.markdown).result;
+  const element = reactProcessor({
+    disableBreaks: props.disableBreaks,
+  }).processSync(props.markdown).result;
 
   return (
     <MarkdownContext.Provider value={props.images ?? {}}>
@@ -182,10 +190,22 @@ function rehypeToHtml(this: any) {
   }
 }
 
-export function markdownToPlainText(markdown: string): string {
-  return rehypeProcessor().use(rehypeToString).processSync(markdown).toString();
+export function markdownToPlainText(
+  markdown: string,
+  options?: MarkdownOptions,
+): string {
+  return rehypeProcessor(options)
+    .use(rehypeToString)
+    .processSync(markdown)
+    .toString();
 }
 
-export function markdownToHtml(markdown: string): string {
-  return rehypeProcessor().use(rehypeToHtml).processSync(markdown).toString();
+export function markdownToHtml(
+  markdown: string,
+  options?: MarkdownOptions,
+): string {
+  return rehypeProcessor(options)
+    .use(rehypeToHtml)
+    .processSync(markdown)
+    .toString();
 }

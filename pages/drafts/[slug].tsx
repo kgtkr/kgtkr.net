@@ -7,16 +7,12 @@ import Head from "next/head";
 import fs from "fs/promises";
 import path from "path";
 import { useRouter } from "next/router";
-import { z } from "zod";
 import {
   decryptDraftContent,
   deriveArticleKey,
   isEncryptedDraft,
 } from "../../lib/draft-crypt";
-
-const Matter = z.object({
-  title: z.string(),
-});
+import { Matter } from "../../lib/blog";
 
 type Props =
   | {
@@ -24,6 +20,7 @@ type Props =
       slug: string;
       title: string;
       markdown: string;
+      disableBreaks: boolean;
       devEncKey: string | null;
     }
   | {
@@ -40,12 +37,16 @@ const Draft: NextPage<Props> = (props) => {
   const [markdown, setMarkdown] = useState<string>(
     props.mode === "plaintext" ? props.markdown : "",
   );
+  const [disableBreaks, setDisableBreaks] = useState<boolean>(
+    props.mode === "plaintext" ? props.disableBreaks : false,
+  );
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (props.mode === "plaintext") {
       setTitle(props.title);
       setMarkdown(props.markdown);
+      setDisableBreaks(props.disableBreaks);
       setError("");
       return;
     }
@@ -68,6 +69,7 @@ const Draft: NextPage<Props> = (props) => {
       const parsedData = Matter.parse(data);
       setTitle(parsedData.title);
       setMarkdown(content);
+      setDisableBreaks(parsedData.disableBreaks);
       setError("");
     } catch {
       setError("Decryption failed");
@@ -126,7 +128,11 @@ const Draft: NextPage<Props> = (props) => {
         )}
       </div>
       <h1>{title}</h1>
-      {markdown ? <Markdown markdown={markdown} /> : <p>Decrypting...</p>}
+      {markdown ? (
+        <Markdown markdown={markdown} disableBreaks={disableBreaks} />
+      ) : (
+        <p>Decrypting...</p>
+      )}
     </div>
   );
 };
@@ -166,6 +172,7 @@ export const getStaticProps: GetStaticProps<Props> = async (context) => {
           slug,
           title: parsedData.title,
           markdown: content,
+          disableBreaks: parsedData.disableBreaks,
           devEncKey,
         },
       };
@@ -181,6 +188,7 @@ export const getStaticProps: GetStaticProps<Props> = async (context) => {
           slug,
           title: parsedData.title,
           markdown: content,
+          disableBreaks: parsedData.disableBreaks,
           devEncKey,
         },
       };

@@ -30,6 +30,7 @@
     "remark-breaks": "^4.0.0",
     "remark-emoji": "^5.0.0",
     "remark-gfm": "^4.0.0",
+    "remark-join-cjk-lines": "^1.0.15",
     "remark-math": "^6.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.0.0",
