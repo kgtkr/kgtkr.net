@@ -55,6 +55,7 @@
     "textlint": "^14.0.0",
     "textlint-rule-preset-ja-spacing": "^2.2.0",
     "textlint-rule-preset-ja-technical-writing": "^7.0.0",
+    "textlint-rule-preset-jtf-style": "^3.1.0",
     "typescript": "^5.0.0"
   },
   "homepage": "https://kgtkr.net",
